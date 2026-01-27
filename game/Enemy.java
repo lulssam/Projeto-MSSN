@@ -12,14 +12,38 @@ public class Enemy extends Boid {
 
     private PImage sprite;
     private int hp;
+    private float minX, maxX, minY, maxY;
 
     protected Enemy(PVector pos, float radius, PImage sprite, PApplet p) {
+        // inicializar boid
         super(pos, 1.0f, radius, p.color(255), p, Type.PREY);
-
         this.sprite = sprite;
-        this.hp = 100;
-        this.vel = new PVector(100, 5);
+
+        //this.hp = 100;
+
+        //this.minX = radius;
+        //this.maxX = p.width - radius;
+        this.minY = radius;
+        this.maxY = p.height / 2.5f;
+
         this.addBehavior(new Wander(0.5f));
+        this.vel = PVector.random2D().mult(100);
+    }
+
+    @Override
+    public void applyBehaviors(float dt) {
+        super.applyBehaviors(dt);
+        keepVertical();
+    }
+
+    private void keepVertical() {
+        if (pos.y < minY) {
+            pos.y = minY;
+            vel.y *= -1;
+        } else if (pos.y > maxY) {
+            pos.y = maxY;
+            vel.y *= -1;
+        }
     }
 
     @Override

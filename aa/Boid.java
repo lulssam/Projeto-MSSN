@@ -15,12 +15,14 @@ public class Boid extends Body {
     protected List<Behavior> behaviors;
     protected PApplet p;
     protected float phiWander;
+    private float speed;
 
     protected Boid(PVector pos, float mass, float radius, int color, PApplet p, Type type) {
         super(pos, new PVector(0, 0), mass, radius, color);
         this.p = p;
         this.dna = new DNA();
         this.behaviors = new ArrayList<>();
+        speed = 1f;
     }
 
     /**
@@ -112,5 +114,7 @@ public class Boid extends Body {
         this.phiWander = phiWander;
     }
 
-
+    public float getSpeed() {
+        return speed;
+    }
 }
