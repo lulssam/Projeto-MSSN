@@ -39,7 +39,7 @@ public class MenuState implements GameState {
     @Override
     public void onEnter(PApplet p) {
     	
-    	app.sound().playMusic("/menu_music.wav", app.settings().volume, app.settings().muted);
+    	app.sound().playMusic("/data/menu_music.wav", app.settings().volume, app.settings().muted);
     	
         titleImg = AssetManager.get().img("title");
         starsBg = AssetManager.get().img("stars");
