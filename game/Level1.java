@@ -4,7 +4,7 @@ import physics.EarthMoon;
 import processing.core.PApplet;
 
 public class Level1 extends Level {
-	private EarthMoon bg;
+    private EarthMoon bg;
 
     public Level1() {
         bg = new EarthMoon();
@@ -14,7 +14,7 @@ public class Level1 extends Level {
     public void onEnter(PApplet p) {
         bg.onEnter(p);
     }
-    
+
     @Override
     public void update(PApplet p, float dt) {
         bg.update(p, dt);
@@ -24,11 +24,11 @@ public class Level1 extends Level {
     public void display(PApplet p) {
         bg.display(p);
     }
-    
+
     @Override
     public String music() {
         return "/level1.wav";
     }
 
-  
+
 }
