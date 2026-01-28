@@ -15,7 +15,7 @@ import java.util.List;
 
 public class SolarSystem {
     private static final double G = 6.67e-11;
-    private final float speedUp = 60 * 60 * 24 * 30 * 2;
+    private final float speedUp = 60 * 15 * 24 * 30 * 2;
 
     //SOL
     private final float sunMass = 1.989e30f;
@@ -61,7 +61,7 @@ public class SolarSystem {
     private final float neptuneMass = 1.0243e26f;
 
     //ASTEROIDES
-    private final int numAsteroids = 800;
+    private final int numAsteroids = 600;
     private final float beltInner = distMarsSun * 1.15f;
     private final float beltOuter = distJupiterSun * 0.75f;
     private final float minAstRadius = 1e9f;
@@ -70,16 +70,13 @@ public class SolarSystem {
 
     private final float[] viewport = {0, 0, 1, 1};
 
-    private final float[] velParams = {PApplet.radians(0), PApplet.radians(0), 1, 1};
-    private final float[] lifetimeParams = {speedUp, 3f * speedUp};
-    private float[] dist;
     private float zoom = 5f;
     private double[] window = {-zoom * distEarthSun, zoom * distEarthSun, -zoom * distEarthSun, zoom * distEarthSun};
     private SubPlot plt;
     private CelestialBody sun, mercury, venus, earth, mars, jupiter, saturn, ringSaturn1, ringSaturn2, uranus, neptune;
-    private PSControl psc;
     private List<CelestialBody> planets;
     private List<Asteroid> asteroids;
+
 
     // fundo de ecrã estrelas
     private PImage starsBg;
@@ -90,7 +87,10 @@ public class SolarSystem {
     }
 
     public void onEnter(PApplet p) {
-        float maxDist = distMarsSun * 1.5f; // ajustar zoom se quiser ver mais planetas
+        // background
+        starsBg = AssetManager.get().img("stars");
+
+        float maxDist = distMarsSun * 3.5f; // ajustar zoom se quiser ver mais planetas
         window = new double[]{-maxDist, maxDist, -maxDist, maxDist};
         plt = new SubPlot(window, viewport, p.width, p.height);
 
@@ -126,6 +126,8 @@ public class SolarSystem {
 
         asteroides(p);
 
+        //System.out.println("sunImg" + sunImg.toString());
+
     }
 
     private void asteroides(PApplet p) {
@@ -154,28 +156,28 @@ public class SolarSystem {
             float radius = rand(minAstRadius, maxAstRadius);
             int color = p.color(200, 200, 200);
 
-            Asteroid a = new Asteroid(pos, vel, asteroidMass, radius, color);
+            PImage asteroidImg = AssetManager.get().img("asteroid");
+
+            Asteroid a = new Asteroid(pos, vel, asteroidMass, radius, color, asteroidImg);
             asteroids.add(a);
         }
     }
 
     public void update(PApplet p, float dt) {
-        // limitar dt para não lagar
-        float simDt = Math.min(dt, 0.1f) * speedUp;
 
         // atualizar planetas (atração sol -> planeta)
         for (CelestialBody planet : planets) {
             if (planet == sun) continue; // sol não se mexe
             PVector f = sun.attraction(planet);
             planet.applyForce(f);
-            planet.move(simDt);
+            planet.move(dt * speedUp);
         }
 
         // atualizar asteriodes
         for (Asteroid a : asteroids) {
             PVector f = sun.attraction(a);
             a.applyForce(f);
-            a.move(simDt);
+            a.move(dt * speedUp);
         }
     }
 

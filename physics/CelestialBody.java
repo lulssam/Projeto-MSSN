@@ -16,7 +16,7 @@ public class CelestialBody extends Mover {
 	private PImage sprite;
 	private static double G = 6.67e-11;
 	private List<PVector> trail;
-	private int trailSize = (int) 1e3;
+	private int trailSize = (int) 1e2;
 
 	protected CelestialBody(PVector pos, PVector vel, float mass, float radius, int color, PImage sprite) {
 		super(pos, vel, mass, radius);
@@ -65,9 +65,16 @@ public class CelestialBody extends Mover {
 		//desenhar o corpo principal
 		float[] pp = plt.getPixelCoord(pos.x, pos.y);
 		float[] r = plt.getDimInPixel(radius, radius);
-		p.noStroke();
-		p.fill(color);
-		p.circle(pp[0], pp[1], 2 * r[0]);
+
+		if (sprite != null) {
+			p.imageMode(PApplet.CENTER);
+			p.image(sprite, pp[0], pp[1], 2 * r[0], 2 * r[0]);
+		} else {
+			p.noStroke();
+			p.fill(color);
+			p.circle(pp[0], pp[1], 2 * r[0]);
+
+		}
 		p.popStyle();
 
 	}

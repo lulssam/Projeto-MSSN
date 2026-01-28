@@ -48,7 +48,20 @@ public class AssetManager {
         
         images.put("heart_full", p.loadImage("heartFilled.png"));
         images.put("heart_empty", p.loadImage("heartEmpty.png"));
-        
+
+        // planetas
+        images.put("sun", p.loadImage("sun.png"));
+        images.put("mercury", p.loadImage("mercury.png"));
+        images.put("venus", p.loadImage("venus.png"));
+        images.put("mars", p.loadImage("mars.png"));
+        images.put("jupiter", p.loadImage("jupiter.png"));
+        images.put("saturn", p.loadImage("saturn.png"));
+        images.put("uranus", p.loadImage("uranus.png"));
+        images.put("neptune", p.loadImage("neptune.png"));
+
+        // asteroide
+        images.put("asteroid", p.loadImage("asteroid.png"));
+
         fonts.put("ui", p.createFont("space_invaders.ttf", 24, true));
     }
 

@@ -60,7 +60,7 @@ public class PlayState implements GameState {
         score = 0;
 
         //o play passa sempre para o nivel 1
-        level = new Level1();
+        level = new Level2();
         level.onEnter(p);
 
         //musica
