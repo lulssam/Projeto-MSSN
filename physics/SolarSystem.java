@@ -61,7 +61,7 @@ public class SolarSystem {
     private final float neptuneMass = 1.0243e26f;
 
     //ASTEROIDES
-    private final int numAsteroids = 600;
+    private final int numAsteroids = 200;
     private final float beltInner = distMarsSun * 1.15f;
     private final float beltOuter = distJupiterSun * 0.75f;
     private final float minAstRadius = 1e9f;

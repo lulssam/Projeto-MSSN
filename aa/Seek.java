@@ -14,9 +14,17 @@ public class Seek extends Behavior {
 
     @Override
     public PVector getDesiredVelocity(Boid me) {
-        PVector desired = PVector.sub(me.eye.target.getPos(), me.getPos()); //vetor da posição do boid até ao alvo
-        float d = desired.mag();
+        if (me.eye == null || me.eye.getTarget() == null) return new PVector(0, 0);
 
+        float targetX = me.eye.getTarget().getPos().x;
+        float myX = me.getPos().x;
+        float diffX = targetX - myX;
+
+        if (Math.abs(diffX) < 1e-6f) return new PVector(0, 0);
+
+        // velociade desejada no eixo x
+        PVector desired = new PVector(diffX, 0);
+        float d = desired.mag();
         if (d < 1e-6f) {
             return new PVector(0, 0); //evita divisão por zero quando já está praticamente em cima do alvo
         }
