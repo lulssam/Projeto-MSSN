@@ -22,6 +22,7 @@ public class PlayState implements GameState {
     private final GameApp app;
     private Player player;
     private Level level;
+    private int currentLevel;
 
     private EnemyManager enemies;
 
@@ -60,7 +61,8 @@ public class PlayState implements GameState {
         score = 0;
 
         //o play passa sempre para o nivel 1
-        level = new Level2();
+        currentLevel = 1;
+        level = new Level1();
         level.onEnter(p);
 
         //musica
@@ -96,9 +98,10 @@ public class PlayState implements GameState {
             levelIntroTimer -= dt;
         } //timer do overlay
 
-        level.update(p, dt);
+        level.update(p, dt); // background continua a mexer
+        player.update(dt, p); // jogador pode mexer se para preparar
 
-        player.update(dt, p);
+        if (levelIntroTimer > 1.5f)  return;
 
         //cooldown de levar hit
         if (hitTimer > 0f) {
@@ -143,10 +146,27 @@ public class PlayState implements GameState {
             }
         }
 
-        //respawn wave quando acabar
+        // quando inimigos forem todos mortos
         if (enemies.getEnemies().isEmpty()) {
-            int count = (int) p.random(5, 11);
-            enemies.spawnWave(p, count);
+            currentLevel ++; // aumentar nivel
+
+            switch (currentLevel) {
+                case 2:
+                    level = new Level2();
+                    level.onEnter(p);
+
+                    levelIntroText = "LEVEL 2";
+                    levelIntroTimer = levelIntroDuration;
+
+                    //musica
+                    app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
+
+                    enemies.spawnWave(p, 12);
+                    break;
+                case 3:
+                    // TODO
+                    break;
+            }
         }
 
     }
