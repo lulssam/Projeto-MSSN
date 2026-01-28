@@ -1,18 +1,20 @@
 package game;
 
 import aa.Boid;
+import aa.Eye;
 import aa.Type;
-import aa.Wander;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
 import processing.core.PVector;
 
-public class Enemy extends Boid {
+import java.util.ArrayList;
 
-    private PImage sprite;
-    private int hp;
-    private float minX, maxX, minY, maxY;
+public abstract class Enemy extends Boid {
+
+    protected PImage sprite;
+    protected int hp;
+    protected float minX, maxX, minY, maxY;
 
     protected Enemy(PVector pos, float radius, PImage sprite, PApplet p) {
         // inicializar boid
@@ -26,9 +28,17 @@ public class Enemy extends Boid {
         this.minY = radius;
         this.maxY = p.height / 2.5f;
 
-        this.addBehavior(new Wander(0.5f));
+        //this.addBehavior(new Wander(0.5f));
         this.vel = PVector.random2D().mult(100);
+
+        // inicializar eye
+        this.eye = new Eye(this, new ArrayList<>());
     }
+
+    /**
+     * Método abstrato qie cada inigmo implementa para definir os seus comportamentos
+     */
+    protected abstract void initBehaviors();
 
     @Override
     public void applyBehaviors(float dt) {

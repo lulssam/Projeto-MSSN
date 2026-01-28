@@ -55,16 +55,24 @@ public class Boid extends Body {
 
             // aplicar peso do comportamtno
             if (desired != null) {
+                desired = desired.copy();
+                System.out.println("Behavior: " + behavior.getClass().getSimpleName() +
+                        " | desired: " + desired +
+                        " | weight: " + behavior.getWeight());
+
                 desired.mult(behavior.getWeight());
                 sumForces.add(desired);
                 sumWeights += behavior.getWeight();
             }
         }
 
+        System.out.println("sumForces ANTES limit: " + sumForces);
+
         // se houver forças -> aplicar
         if (sumWeights > 0) {
             //sumForces.y = 0; // bloquear o eixo y para não andarem para cima e para baixo
             sumForces.limit(dna.maxForce);
+            System.out.println("sumForces DEPOIS limit: " + sumForces + " | maxForce: " + dna.maxForce);
             applyForce(sumForces);
         }
 
@@ -116,5 +124,14 @@ public class Boid extends Body {
 
     public float getSpeed() {
         return speed;
+    }
+
+    public void setTarget(Body target, List<Body> trackingList) {
+        this.eye = new Eye(this, trackingList);
+        this.eye.setTarget(target);
+    }
+
+    public List<Behavior> getBehaviors() {
+        return behaviors;
     }
 }
