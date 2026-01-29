@@ -1,31 +1,34 @@
 package game;
 
+import physics.Galaxy;
 import processing.core.PApplet;
 
 public class Level3 extends Level {
+    private Galaxy bg;
 
-	@Override
-	public void onEnter(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    public Level3() {
+        bg = new Galaxy();
+    }
 
-	@Override
-	public void update(PApplet p, float dt) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void onEnter(PApplet p) {
+        bg.onEnter(p);
+    }
 
-	@Override
-	public void display(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void update(PApplet p, float dt) {
+        bg.update(p, dt);
+    }
 
-	@Override
-	public String music() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public void display(PApplet p) {
+        bg.display(p);
+    }
+
+    @Override
+    public String music() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }
