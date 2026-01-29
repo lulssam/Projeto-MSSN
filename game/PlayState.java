@@ -62,7 +62,7 @@ public class PlayState implements GameState {
 
         //o play passa sempre para o nivel 1
         currentLevel = 1;
-        level = new Level1();
+        level = new Level3();
         level.onEnter(p);
 
         //musica
@@ -164,7 +164,12 @@ public class PlayState implements GameState {
                     enemies.spawnWaveLevel2(p, 12, player);
                     break;
                 case 3:
-                    // TODO
+                    level = new Level3();
+                    level.onEnter(p);
+
+                    levelIntroText = "LEVEL 3";
+                    levelIntroTimer = levelIntroDuration;
+
                     break;
             }
         }
