@@ -3,6 +3,7 @@ package particles;
 import java.util.ArrayList;
 import java.util.List;
 
+import particles.Particle;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -34,14 +35,16 @@ public class Projectile {
     private PVector vel;
     private float radius;
     private int damage;
+    private int color;
     
     private List<Particle> particles = new ArrayList<>();
 
-    public Projectile(PVector pos, PVector vel, float radius, int damage) {
+    public Projectile(PVector pos, PVector vel, float radius, int damage, int color) {
         this.pos = pos.copy();
         this.vel = vel.copy();
         this.radius = radius;
         this.damage = damage;
+        this.color = color;
     }
     
     public void update(float dt) {
@@ -61,7 +64,7 @@ public class Projectile {
             PVector pv = new PVector((float)(Math.random() * 50 - 25), (float)(Math.random() * 50 - 25));
             pv.mult(0.02f);
 
-            particles.add(new Particle(spawn, pv, radius * 2.2f, 0.18f));
+            particles.add(new Particle(spawn, pv, radius * 2.2f, 0.18f, this.color));
         }
 
         //trail para tras
@@ -79,7 +82,7 @@ public class Projectile {
             PVector pv = new PVector((float)(Math.random() * 30 - 15), (float)(Math.random() * 80 + 40));
             pv.mult(0.01f);
 
-            particles.add(new Particle(spawn, pv, radius * 2.0f, 0.25f));
+            particles.add(new Particle(spawn, pv, radius * 2.0f, 0.25f, this.color));
         }
         
         //atualizar/remover particulas
@@ -107,10 +110,10 @@ public class Projectile {
         p.noStroke();
 
         //camadas de glow
-        p.fill(255, 160, 40, 80);
+        p.fill(this.color, 80);
         p.circle(pos.x, pos.y, radius * 10);
 
-        p.fill(255, 220, 120, 90);
+        p.fill(this.color, 150);
         p.circle(pos.x, pos.y, radius * 6);
 
         //nucleo

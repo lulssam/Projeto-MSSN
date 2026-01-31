@@ -120,7 +120,7 @@ public class PlayState implements GameState {
         shootTimer -= dt;
         if (shootHeld && shootTimer <= 0f) {
             //spawn na ponta da nave
-            projectiles.spawnPlayerShot(player.gunMuzzle());
+            projectiles.spawnPlayerShot(p, player.gunMuzzle());
             shootTimer = shootCooldown;
         }
 
