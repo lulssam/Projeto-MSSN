@@ -2,7 +2,6 @@ package physics;
 
 import processing.core.PApplet;
 import processing.core.PVector;
-import tools.SubPlot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,12 +10,12 @@ import java.util.List;
 
 public class ParticleSystem extends Body {
 
-    private final List<Particle> particles;
+    private final List<ParticlePhysics> particlePhysics;
     private final PSControl psc;
 
     public ParticleSystem(PVector pos, PVector vel, float mass, float radius, PSControl psc) {
         super(pos, vel, mass, radius, 0);
-        this.particles = new ArrayList<Particle>();
+        this.particlePhysics = new ArrayList<ParticlePhysics>();
         this.psc = psc;
     }
 
@@ -26,10 +25,10 @@ public class ParticleSystem extends Body {
         addParticles(dt); //adicionar partículas
         
         //atualizar partículas e remover as mortas
-        for (int i = particles.size() - 1; i >= 0; i--) {
-            Particle p = particles.get(i);
+        for (int i = particlePhysics.size() - 1; i >= 0; i--) {
+            ParticlePhysics p = particlePhysics.get(i);
             p.move(dt);
-            if (p.isDead()) particles.remove(i);
+            if (p.isDead()) particlePhysics.remove(i);
         }
     }
 
@@ -37,10 +36,10 @@ public class ParticleSystem extends Body {
     public void move(float dtPhysics, float dtEmission) {
 		super.move(dtPhysics);
         addParticles(dtEmission);
-        for (int i = particles.size() -1; i >= 0 ; i--) {
-            Particle p = particles.get(i);
+        for (int i = particlePhysics.size() -1; i >= 0 ; i--) {
+            ParticlePhysics p = particlePhysics.get(i);
             p.move(dtPhysics);
-            if (p.isDead()) particles.remove(i);
+            if (p.isDead()) particlePhysics.remove(i);
         }
     }
 
@@ -51,14 +50,14 @@ public class ParticleSystem extends Body {
     
     //criar uma nova partícula com parâmetros aleatórios
     protected void addOneParticle() {
-        Particle particle = new Particle(pos, psc.getRndVel(), psc.getRndRadius(), psc.getColor(), psc.getRndLifetime());
-        particles.add(particle);
+        ParticlePhysics particlePhysics = new ParticlePhysics(pos, psc.getRndVel(), psc.getRndRadius(), psc.getColor(), psc.getRndLifetime());
+        this.particlePhysics.add(particlePhysics);
     }
     
     //passar posição e velocidade
     protected void addOneParticle(PVector spawnPos, PVector spawnVel, float radius, int color, float lifetime) {
-        Particle particle = new Particle(spawnPos, spawnVel, radius, color, lifetime);
-        particles.add(particle);
+        ParticlePhysics particlePhysics = new ParticlePhysics(spawnPos, spawnVel, radius, color, lifetime);
+        this.particlePhysics.add(particlePhysics);
     }
     
     //emitir partículas proporcionalmente ao fluxo
@@ -79,8 +78,8 @@ public class ParticleSystem extends Body {
     }
 
     public void display(PApplet p) {
-        for (Particle particle : particles) {
-            particle.display(p);
+        for (ParticlePhysics particlePhysics : this.particlePhysics) {
+            particlePhysics.display(p);
         }
     }
 }

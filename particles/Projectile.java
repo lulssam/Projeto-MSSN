@@ -3,7 +3,6 @@ package particles;
 import java.util.ArrayList;
 import java.util.List;
 
-import particles.Particle;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -37,7 +36,7 @@ public class Projectile {
     private int damage;
     private int color;
     
-    private List<Particle> particles = new ArrayList<>();
+    private List<ParticleProjectile> particleProjectiles = new ArrayList<>();
 
     public Projectile(PVector pos, PVector vel, float radius, int damage, int color) {
         this.pos = pos.copy();
@@ -64,7 +63,7 @@ public class Projectile {
             PVector pv = new PVector((float)(Math.random() * 50 - 25), (float)(Math.random() * 50 - 25));
             pv.mult(0.02f);
 
-            particles.add(new Particle(spawn, pv, radius * 2.2f, 0.18f, this.color));
+            particleProjectiles.add(new ParticleProjectile(spawn, pv, radius * 2.2f, 0.18f, this.color));
         }
 
         //trail para tras
@@ -82,19 +81,20 @@ public class Projectile {
             PVector pv = new PVector((float)(Math.random() * 30 - 15), (float)(Math.random() * 80 + 40));
             pv.mult(0.01f);
 
-            particles.add(new Particle(spawn, pv, radius * 2.0f, 0.25f, this.color));
+            particleProjectiles.add(new ParticleProjectile(spawn, pv, radius * 2.0f, 0.25f, this.color));
         }
         
         //atualizar/remover particulas
-        for (int i = particles.size() - 1; i >= 0; i--) {
-            Particle sp = particles.get(i);
+        for (int i = particleProjectiles.size() - 1; i >= 0; i--) {
+            ParticleProjectile sp = particleProjectiles.get(i);
             sp.update(dt);
-            if (sp.dead()){particles.remove(i);}
+            if (sp.dead()){
+                particleProjectiles.remove(i);}
         }
 
         //evita lista gigante
-        if (particles.size() > 120) {
-            particles.subList(0, particles.size() - 120).clear();
+        if (particleProjectiles.size() > 120) {
+            particleProjectiles.subList(0, particleProjectiles.size() - 120).clear();
         }
         
     }
@@ -102,7 +102,7 @@ public class Projectile {
     public void display(PApplet p) {
     	
     	//particulas primeiro
-        for (Particle sp : particles) sp.display(p);
+        for (ParticleProjectile sp : particleProjectiles) sp.display(p);
 
         //core glow
         p.pushStyle();

@@ -8,6 +8,7 @@ import physics.Body;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
+import ui.AssetManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -194,7 +195,7 @@ public class EnemyManager {
             // 30% de prob de ataque custom
             float prob = p.random(1f);
 
-            if (shooter instanceof EnemyLevel3 && prob < 0.5f) {
+            if (shooter instanceof EnemyLevel3 && prob < 0.4f) {
                 // ATAQUE ESPECIAL -> TIRO TRIPLO AZUL (nivel 3)
                 int azul = p.color(0, 0, 255);
 
@@ -202,6 +203,7 @@ public class EnemyManager {
                 proj.spawnCustomEnenmyShot(origin, new PVector(-100, 300), azul);
                 proj.spawnCustomEnenmyShot(origin, new PVector(0, 300), azul);
                 proj.spawnCustomEnenmyShot(origin, new PVector(100, 300), azul);
+
             } else if (shooter instanceof EnemyLevel2 && prob < 0.3f) {
                 // ATAQUE ESPECIAL -> TIRO DUPLO ROXO (nivel 2)
                 int roxo = p.color(180, 50, 255);
@@ -237,5 +239,14 @@ public class EnemyManager {
 
     public List<Enemy> getEnemies() {
         return enemies;
+    }
+
+    public void spawnBoss(PApplet p) {
+        enemies.clear();
+        PVector pos = new PVector(p.width /2f, p.height * 0.15f); // em cima no meio
+        float radius = 60f;
+        PImage bossSprite = AssetManager.get().img("boss");
+
+        enemies.add(new BossLevel4(pos, radius, bossSprite, p));
     }
 }

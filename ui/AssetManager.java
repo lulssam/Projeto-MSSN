@@ -42,6 +42,7 @@ public class AssetManager {
         images.put("enemy1", p.loadImage("ufo1.png"));
         images.put("enemy2", p.loadImage("ufo2.png"));
         images.put("enemy3", p.loadImage("ufo3.png"));
+        images.put("boss", p.loadImage("boss.png"));
         
         images.put("earth", p.loadImage("earth.png"));
         images.put("moon", p.loadImage("moon.png"));

@@ -12,9 +12,9 @@ import ui.AssetManager;
 
 public class Galaxy {
 
-    private final List<Particle> haze = new ArrayList<>(); //particulas menos definidas de "poeira"
-    private final List<Particle> highlights = new ArrayList<>();
-    private final List<Particle> denseHighlights = new ArrayList<>(); //"tentaculos"
+    private final List<ParticlePhysics> haze = new ArrayList<>(); //particulas menos definidas de "poeira"
+    private final List<ParticlePhysics> highlights = new ArrayList<>();
+    private final List<ParticlePhysics> denseHighlights = new ArrayList<>(); //"tentaculos"
 
     private PVector center;
     private float globalAngle = 0f;
@@ -88,9 +88,9 @@ public class Galaxy {
         updateList(denseHighlights, dt);
     }
 
-    private void updateList(List<Particle> list, float dt) {
+    private void updateList(List<ParticlePhysics> list, float dt) {
         for (int i = list.size() - 1; i >= 0; i--) {
-            Particle par = list.get(i);
+            ParticlePhysics par = list.get(i);
             par.move(dt);
             
             if (par.isDead()) { 
@@ -211,7 +211,7 @@ public class Galaxy {
             float a = lerp(10f, 24f, (float) Math.random()) + bright * 18f;
             c = withAlpha(p, base, a);
 
-            haze.add(new Particle(spawnPos, spawnVel, pr, c, life));
+            haze.add(new ParticlePhysics(spawnPos, spawnVel, pr, c, life));
             return;
         }
 
@@ -235,9 +235,9 @@ public class Galaxy {
         c = withAlpha(p, starCol, a);
 
         if (isDense) { 
-        	denseHighlights.add(new Particle(spawnPos, spawnVel, pr, c, life));
+        	denseHighlights.add(new ParticlePhysics(spawnPos, spawnVel, pr, c, life));
         } else { 
-        	highlights.add(new Particle(spawnPos, spawnVel, pr, c, life));
+        	highlights.add(new ParticlePhysics(spawnPos, spawnVel, pr, c, life));
         }
     }
 
@@ -248,12 +248,12 @@ public class Galaxy {
 
         //haze suave (base)
         p.blendMode(PApplet.BLEND);
-        for (Particle par : haze) par.display(p);
+        for (ParticlePhysics par : haze) par.display(p);
 
         //highlights + tentaculos (brilho/definição)
         p.blendMode(PApplet.ADD);
-        for (Particle par : highlights) { par.display(p);}
-        for (Particle par : denseHighlights) { par.display(p);}
+        for (ParticlePhysics par : highlights) { par.display(p);}
+        for (ParticlePhysics par : denseHighlights) { par.display(p);}
 
         drawCoreGlow(p);
 

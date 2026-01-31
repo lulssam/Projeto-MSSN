@@ -27,7 +27,7 @@ public class Level3 extends Level {
 
     @Override
     public String music() {
-    	return "/level3.wav";
+    	return "/data/level3.wav";
     }
 
 }
