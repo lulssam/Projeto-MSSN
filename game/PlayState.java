@@ -171,6 +171,7 @@ public class PlayState implements GameState {
                     app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
 
                     enemies.spawnWaveLevel2(p, 20, player);
+                    projectiles.clear();
                     break;
                 case 3:
                     level = new Level3();
@@ -183,7 +184,7 @@ public class PlayState implements GameState {
                     app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
 
                     enemies.spawnWaveLevel3(p, 25, player);
-
+                    projectiles.clear();
                     break;
                 case 4: // game finished
                     isFading = true;
