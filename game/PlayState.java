@@ -8,11 +8,11 @@ import ui.AssetManager;
 
 /**
  * Estado de jogo responsável pela execução principal do gameplay.
- * 
+ * <p>
  * Este estado é independente do nível concreto, utilizando a classe
  * abstrata Level para permitir a progressão entre vários níveis
  * sem alterar a lógica principal do jogo.
- * 
+ * <p>
  * O PlayState recebe input do utilizador (teclado) e coordena
  * a atualização e desenho de todas as entidades ativas em jogo
  */
@@ -46,8 +46,17 @@ public class PlayState implements GameState {
     private float levelIntroDuration = 3.5f; //segundos
     private String levelIntroText = "LEVEL 1";
 
+    // fade out
+    private boolean isFading;
+    private float fadeAlpha;
+    private boolean isFinished;
+
     public PlayState(GameApp app) {
         this.app = app;
+
+        isFading = false;
+        fadeAlpha = 0;
+        isFinished = false;
     }
 
     @Override
@@ -169,16 +178,27 @@ public class PlayState implements GameState {
 
                     levelIntroText = "LEVEL 3";
                     levelIntroTimer = levelIntroDuration;
-                    
+
                     //musica
                     app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
-                    
-                    enemies.spawnWaveLevel3(p, 25, player);
-                    break;
 
+                    enemies.spawnWaveLevel3(p, 25, player);
+
+                    break;
+                case 4: // game finished
+                    isFading = true;
             }
         }
 
+        if (isFading) {
+            fadeAlpha += 150 * dt;
+
+            if (fadeAlpha >= 255) {
+                fadeAlpha = 255;
+                app.settings().lastScore = score;
+                app.setState(new Credits(app, score), p);
+            }
+        }
     }
 
     @Override
@@ -204,6 +224,14 @@ public class PlayState implements GameState {
 
         drawLevelIntro(p); //overlay do nivel
         drawHUD(p); //corações
+
+        if (isFading) {
+            p.pushStyle();
+            p.noStroke();
+            p.fill(0, fadeAlpha);
+            p.rect(0, 0, p.width, p.height);
+            p.popStyle();
+        }
     }
 
     //metodo para desenhar o overlay inicial dos niveis
