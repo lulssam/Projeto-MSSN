@@ -27,8 +27,7 @@ public class Level3 extends Level {
 
     @Override
     public String music() {
-        // TODO Auto-generated method stub
-        return null;
+    	return "/level3.wav";
     }
 
 }

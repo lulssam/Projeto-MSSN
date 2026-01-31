@@ -13,17 +13,29 @@ public class Wander extends Behavior {
 
     @Override
     public PVector getDesiredVelocity(Boid me) {
-        PVector centro = me.getPos().copy();//centro da projeção à frente
-        centro.add(me.getVel().copy().mult(me.dna.deltaTWander)); //avança o centro ao longo da direção atual
+        PVector centro = me.getPos().copy();  //centro da projeção à frente
+        
+        if (me.getVel().magSq() > 0.00001f) {
+            PVector forward = me.getVel().copy().normalize();
+            forward.mult(me.dna.deltaTWander);
+            centro.add(forward);
+        }
+        
+        //ponto no circulo do wander
+        PVector offset = new PVector(me.dna.radiusWander * (float) Math.cos(me.phiWander), me.dna.radiusWander * (float) Math.sin(me.phiWander));
 
-        PVector target = new PVector(
-                me.dna.radiusWander * (float) Math.cos(me.phiWander),
-                me.dna.radiusWander * (float) Math.sin(me.phiWander)
-        );
-
-        target.add(centro); //move o ponto do círculo para o centro de projeção
-        me.phiWander += (float) (2 * (Math.random() - 0.5) * me.dna.deltaPhiWander); //altera o ângulo aleatoriamente
-
-        return PVector.sub(target, me.getPos());
+        PVector target = PVector.add(centro, offset);
+        
+        me.phiWander += (float)(2 * (Math.random() - 0.5) * me.dna.deltaPhiWander);
+        
+        //desired velocity
+        PVector desired = PVector.sub(target, me.getPos());
+        if (desired.magSq() > 0.00001f) {
+            desired.normalize();
+            desired.mult(me.dna.maxSpeed);
+        }
+        
+        //steering
+        return PVector.sub(desired, me.getVel());
     }
 }

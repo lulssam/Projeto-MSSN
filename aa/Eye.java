@@ -29,7 +29,7 @@ public class Eye {
         this.visionSafeDistance = me.dna.visionSafeDistance;
 
         //se houver uma lista, define o primeiro como target
-        if (!allTrackingBodies.isEmpty()) setTarget(allTrackingBodies.getFirst());
+        //if (!allTrackingBodies.isEmpty()) { setTarget(allTrackingBodies.getFirst());}
     }
 
     public void setDisplayScale(float farScale, float nearScale) {

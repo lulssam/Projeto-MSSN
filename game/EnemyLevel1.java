@@ -9,7 +9,7 @@ import processing.core.PVector;
 public class EnemyLevel1 extends Enemy {
     protected EnemyLevel1(PVector pos, float radius, PImage sprite, PApplet p) {
         super(pos, radius, sprite, p);
-        this.hp = 50;
+        this.hp = 1;  //é necessário apenas 1 tiro para matar 
     }
     @Override
     protected void initBehaviors() {

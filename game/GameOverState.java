@@ -32,6 +32,8 @@ public class GameOverState implements GameState {
 
     @Override
     public void onEnter(PApplet p) {
+    	app.sound().playMusic("/game_over.wav", app.settings().volume, app.settings().muted);
+    	
         float bw = 260, bh = 60;
         back = new Buttons((p.width - bw) / 2f, p.height * 0.70f, bw, bh, "Back to Menu");
     }
@@ -59,12 +61,18 @@ public class GameOverState implements GameState {
 
     @Override
     public void keyPressed(PApplet p) {
-        if (p.key == 'm' || p.key == 'M') app.setState(new MenuState(app, score), p);
+        if (p.key == 'm' || p.key == 'M') { 
+        	app.settings().lastScore = score;
+            app.setState(new MenuState(app, score), p);
+        }
     }
 
     @Override
     public void mousePressed(PApplet p) {
-        if (back.isClicked(p)) app.setState(new MenuState(app), p);
+        if (back.isClicked(p)) {
+        	app.settings().lastScore = score;
+        	app.setState(new MenuState(app, score), p);
+        }
     }
 
 	@Override

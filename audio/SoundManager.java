@@ -1,6 +1,7 @@
 package audio;
 
 import javax.sound.sampled.*;
+
 import java.net.URL;
 
 /**
@@ -25,7 +26,7 @@ public class SoundManager {
 
     private Clip music;
     private String currentTrack;
-
+    
     public void playMusic(String resourcePath, float volume01, boolean muted) {
         if (resourcePath == null) return;
 

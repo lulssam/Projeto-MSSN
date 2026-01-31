@@ -8,13 +8,13 @@ import processing.core.PVector;
 
 /**
  * Classe que representa a nave controlada pelo jogador.
- * <p>
+ * 
  * O Player é uma entidade que:
- * - Responde a input do teclado
- * - Move-se apenas no eixo horizontal
- * - Não pode sair dos limites do ecrã
- * - Serve como origem para os disparos do jogador
- * <p>
+ *  - Responde a input do teclado
+ *  - Move-se apenas no eixo horizontal
+ *  - Não pode sair dos limites do ecrã
+ *  - Serve como origem para os disparos do jogador
+ * 
  * A lógica de disparo é gerida externamente (PlayState),
  * sendo esta classe responsável apenas por fornecer a posição
  * correta do canhão da nave.
@@ -28,12 +28,16 @@ public class Player extends Body {
     private boolean left = false;
     private boolean right = false;
     private PImage sprite;
+    
+    //valores para a animação de damage
+    private float damageFlashTimer = 0f;
+    private final float damageFlashDuration = 0.15f; //150ms
 
     public Player(PVector pos, float radius, PImage sprite) {
         super(pos, new PVector(), 1.0f, radius, 0);
         this.sprite = sprite;
 
-        // testar
+        //testar
         this.type = Type.PREY;
     }
 
@@ -43,6 +47,10 @@ public class Player extends Body {
 
     public void setRight(boolean v) {
         right = v;
+    }
+    
+    public void flashDamage() {
+        damageFlashTimer = damageFlashDuration;
     }
 
     public void update(float dt, PApplet p) {
@@ -70,21 +78,32 @@ public class Player extends Body {
 
         pos.y = p.height * 0.85f; //y fixo
 
-        // System.out.println("dt:" + dt + " | frameRate: " + p.frameRate);
+        if (damageFlashTimer > 0f) { damageFlashTimer -= dt;}
     }
 
     //posição de onde sai o tiro
     public PVector gunMuzzle() {
         return new PVector(pos.x, pos.y - radius);
     }
+    
+    
 
     @Override
     public void display(PApplet p) {
+    	 p.pushStyle();
+    	 
+    	 //se levar dano 
+    	 if (damageFlashTimer > 0f) { p.tint(255, 120);}
+    	 else { p.tint(255, 255);}
+    	
         if (sprite != null) {
             p.imageMode(PApplet.CENTER);
             p.image(sprite, pos.x, pos.y, radius * 2, radius * 2);
+    
         } else {
             super.display(p);
         }
+        
+        p.popStyle();
     }
 }

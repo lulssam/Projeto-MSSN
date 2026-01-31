@@ -9,8 +9,9 @@ import processing.core.PApplet;
  * como:
  *  - Menu principal
  *  - Opções
- *  - Jogo em sí
+ *  - Jogo
  *  - Game Over
+ *  - Créditos
  * 
  * Cada estado é responsável por:
  *  - Inicializar e libertar os seus próprios recursos

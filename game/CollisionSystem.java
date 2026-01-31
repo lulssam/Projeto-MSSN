@@ -5,9 +5,10 @@ import java.util.List;
 import particles.Projectile;
 import processing.core.PVector;
 
+
 public class CollisionSystem {
 
-    //circulo vs circulo
+    //circulo vs circulo (área de colisão)
     public static boolean circles(PVector a, float ra, PVector b, float rb) {
         float dx = a.x - b.x;
         float dy = a.y - b.y;
@@ -19,35 +20,45 @@ public class CollisionSystem {
     //retorna quantos inimigos morreram (para score)
     public static int shotsVsEnemies(List<Projectile> shots, List<Enemy> enemies) {
         int kills = 0;
+        int damagePerShot = 1; //1 tiro = 1 dano (Level1 hp=1, Level2 hp=2, Level3 hp=3)
 
         for (int si = shots.size() - 1; si >= 0; si--) {
             Projectile s = shots.get(si);
 
             boolean hit = false;
+            
             for (int ei = enemies.size() - 1; ei >= 0; ei--) {
                 Enemy e = enemies.get(ei);
 
                 if (circles(s.getPos(), s.getRadius(), e.getPos(), e.getRadius())) {
-                    //remove ambos
-                    enemies.remove(ei);
+                	e.takeDamage(damagePerShot); //leva dano
+                	
+                	//se morreu, remove e conta a kill
+                    if (e.isDead()) {
+                        enemies.remove(ei);
+                        kills++;
+                    }
+                    
+                    //o tiro desaparece sempre que acerta
                     hit = true;
-                    kills++;
-                    break;
+                    break;            
                 }
             }
 
-            if (hit) {shots.remove(si);}
+            if (hit) { shots.remove(si);}
         }
 
         return kills;
     }
     
     //enemyShots vs player
-    public static boolean enemyShotsVsPlayer(List<particles.Projectile> shots, Player player) {
+    public static boolean enemyShotsVsPlayer(List<Projectile> shots, Player player) {
         for (int i = shots.size() - 1; i >= 0; i--) {
-            particles.Projectile s = shots.get(i);
+        	
+        	Projectile s = shots.get(i);
+            
             if (circles(s.getPos(), s.getRadius(), player.getPos(), player.getRadius())) {
-                shots.remove(i);
+                shots.remove(i);    
                 return true;
             }
         }
@@ -55,3 +66,4 @@ public class CollisionSystem {
     }
 
 }
+

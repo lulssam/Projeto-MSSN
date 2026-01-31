@@ -4,18 +4,18 @@ import processing.core.PVector;
 
 /**
  * Classe abstrata que representa um objeto físico genérico com movimento
- * <p>
+ *
  * Um Mover define as propriedades e comportamentos básicos necessários
  * para simular movimento no espaço, nomeadamente:
- * - Posição, velocidade e aceleração
- * - Massa e raio
- * - Aplicação de forças externas
- * - Integração temporal do movimento
- * <p>
+ *  - Posição, velocidade e aceleração
+ *  - Massa e raio
+ *  - Aplicação de forças externas
+ *  - Integração temporal do movimento
+ *
  * O movimento é calculado através de uma integração simples
  * (Euler), adequada para simulações leves e efeitos visuais
  * no contexto do jogo.
- * <p>
+ *
  * Esta classe serve de base para entidades físicas concretas
  * (por exemplo, corpos celestes ou partículas)
  */

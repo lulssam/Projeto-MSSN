@@ -41,6 +41,7 @@ public class ProjectileManager {
         //dispara para cima
     	PVector vel = new PVector(0, -playerShotSpeed);
         playerShots.add(new Projectile(origin, vel, playerShotRadius, playerShotDamage));
+        
     }
     
     public void spawnEnemyShot(PVector origin) {

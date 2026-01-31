@@ -8,11 +8,11 @@ import ui.AssetManager;
 
 /**
  * Estado de jogo responsável pela execução principal do gameplay.
- * <p>
+ * 
  * Este estado é independente do nível concreto, utilizando a classe
  * abstrata Level para permitir a progressão entre vários níveis
  * sem alterar a lógica principal do jogo.
- * <p>
+ * 
  * O PlayState recebe input do utilizador (teclado) e coordena
  * a atualização e desenho de todas as entidades ativas em jogo
  */
@@ -62,7 +62,7 @@ public class PlayState implements GameState {
 
         //o play passa sempre para o nivel 1
         currentLevel = 1;
-        level = new Level3();
+        level = new Level1();
         level.onEnter(p);
 
         //musica
@@ -76,8 +76,7 @@ public class PlayState implements GameState {
 
         //inimigos
         enemies = new EnemyManager();
-        int count = (int) p.random(5, 11);
-        enemies.spawnWaveLevel1(p, count);
+        enemies.spawnWaveLevel1(p, 15);
 
         //overlay
         levelIntroText = "LEVEL 1"; //mudar para: "LEVEL " + levelNumber quando houver mais niveis
@@ -136,6 +135,7 @@ public class PlayState implements GameState {
         if (hitTimer <= 0f && CollisionSystem.enemyShotsVsPlayer(projectiles.getEnemyShots(), player)) {
 
             lives--;
+            player.flashDamage(); //ativa a animação de damage
             hitTimer = hitCooldown;
 
             //se ficar sem vidas passa para GameOver e guarda-se o score
@@ -146,9 +146,9 @@ public class PlayState implements GameState {
             }
         }
 
-        // quando inimigos forem todos mortos
+        //quando inimigos forem todos mortos
         if (enemies.getEnemies().isEmpty()) {
-            currentLevel++; // aumentar nivel
+            currentLevel++; //aumentar nivel
 
             switch (currentLevel) {
                 case 2:
@@ -161,7 +161,7 @@ public class PlayState implements GameState {
                     //musica
                     app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
 
-                    enemies.spawnWaveLevel2(p, 12, player);
+                    enemies.spawnWaveLevel2(p, 20, player);
                     break;
                 case 3:
                     level = new Level3();
@@ -169,8 +169,13 @@ public class PlayState implements GameState {
 
                     levelIntroText = "LEVEL 3";
                     levelIntroTimer = levelIntroDuration;
-
+                    
+                    //musica
+                    app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
+                    
+                    enemies.spawnWaveLevel3(p, 25, player);
                     break;
+
             }
         }
 

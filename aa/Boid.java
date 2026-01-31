@@ -25,22 +25,15 @@ public class Boid extends Body {
         speed = 1f;
     }
 
-    /**
-     * Adicionar um comportamento à lista
-     *
-     * @param behavior comportamento escolhido
-     */
+    //adicionar um comportamento à lista
     public void addBehavior(Behavior behavior) {
         behaviors.add(behavior);
     }
 
-    /**
-     * Remover um dado comportamento da lista
-     *
-     * @param behavior comportamento a remover
-     */
+
+    //remover um dado comportamento da lista
     public void removeBehavior(Behavior behavior) {
-        if (behaviors.contains(behavior)) { // confirmar se há na lista
+        if (behaviors.contains(behavior)) {  //confirmar se há na lista
             behaviors.remove(behavior);
         }
     }
@@ -49,30 +42,24 @@ public class Boid extends Body {
         PVector sumForces = new PVector();
         float sumWeights = 0;
 
-        // percorrer todos os comportamentos ativos
+        //percorrer todos os comportamentos ativos
         for (Behavior behavior : behaviors) {
             PVector desired = behavior.getDesiredVelocity(this);
 
-            // aplicar peso do comportamtno
+            //aplicar peso do comportamtno
             if (desired != null) {
-                desired = desired.copy();
-                System.out.println("Behavior: " + behavior.getClass().getSimpleName() +
-                        " | desired: " + desired +
-                        " | weight: " + behavior.getWeight());
-
-                desired.mult(behavior.getWeight());
-                sumForces.add(desired);
-                sumWeights += behavior.getWeight();
+            	 PVector f = desired.copy();
+                 f.mult(behavior.getWeight());
+                 sumForces.add(f);
+                 sumWeights += behavior.getWeight();
             }
         }
 
-        System.out.println("sumForces ANTES limit: " + sumForces);
 
-        // se houver forças -> aplicar
+        //se houver forças -> aplicar
         if (sumWeights > 0) {
-            //sumForces.y = 0; // bloquear o eixo y para não andarem para cima e para baixo
+        	sumForces.div(sumWeights);
             sumForces.limit(dna.maxForce);
-            System.out.println("sumForces DEPOIS limit: " + sumForces + " | maxForce: " + dna.maxForce);
             applyForce(sumForces);
         }
 
@@ -82,9 +69,8 @@ public class Boid extends Body {
         checkBounds();
     }
 
-    /**
-     * definir limites do mundo. Modelo wrap around
-     */
+
+    //definir limites do mundo (modelo wrap around)
     private void checkBounds() {
         if (pos.x > p.width + radius) pos.x = -radius;
         else if (pos.x < -radius) pos.x = p.width + radius;

@@ -50,8 +50,14 @@ public class ParticleSystem extends Body {
     }
     
     //criar uma nova partícula com parâmetros aleatórios
-    private void addOneParticle() {
+    protected void addOneParticle() {
         Particle particle = new Particle(pos, psc.getRndVel(), psc.getRndRadius(), psc.getColor(), psc.getRndLifetime());
+        particles.add(particle);
+    }
+    
+    //passar posição e velocidade
+    protected void addOneParticle(PVector spawnPos, PVector spawnVel, float radius, int color, float lifetime) {
+        Particle particle = new Particle(spawnPos, spawnVel, radius, color, lifetime);
         particles.add(particle);
     }
     

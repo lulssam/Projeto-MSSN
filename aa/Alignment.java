@@ -6,14 +6,14 @@ import physics.Body;
 import processing.core.PVector;
 
 /**
- * Cohesion: move o boid na direção do centro (média das posições) dos vizinhos
+ * Alignment: faz o boid alinhar a velocidade/direção com a média dos vizinhos
  */
-public class Cohesion extends Behavior {
+public class Alignment extends Behavior {
 
     private final List<? extends Body> neighbors;
-    private final float neighborRadius;
+    private final float neighborRadius; //raio para considerar os vizinhos
 
-    public Cohesion(List<? extends Body> neighbors, float neighborRadius, float weight) {
+    public Alignment(List<? extends Body> neighbors, float neighborRadius, float weight) {
         super(weight);
         this.neighbors = neighbors;
         this.neighborRadius = neighborRadius;
@@ -21,7 +21,7 @@ public class Cohesion extends Behavior {
 
     @Override
     public PVector getDesiredVelocity(Boid me) {
-    	PVector center = new PVector(0, 0);
+    	PVector avgVel = new PVector(0, 0);
         int count = 0;
 
         for (Body b : neighbors) {
@@ -29,24 +29,25 @@ public class Cohesion extends Behavior {
 
             float d = PVector.dist(me.getPos(), b.getPos());
             if (d > 0 && d < neighborRadius) {
-                center.add(b.getPos());
+                avgVel.add(b.getVel());
                 count++;
             }
         }
 
         if (count == 0) { return new PVector(0, 0);}
 
-        center.div(count);
+        avgVel.div(count);
 
-        //desired vel = ir para o centro
-        PVector desired = PVector.sub(center, me.getPos());
-        if (desired.magSq() > 0.00001f) {
-            desired.normalize();
-            desired.mult(me.dna.maxSpeed);
+        //desired velocity (direção média)
+        if (avgVel.magSq() > 0.00001f) {
+            avgVel.normalize();
+            avgVel.mult(me.dna.maxSpeed);
         }
 
         //steering = desired - current
-        PVector steer = PVector.sub(desired, me.getVel());
+        PVector steer = PVector.sub(avgVel, me.getVel());
+
+        //limitar para ficar suave
         if (steer.mag() > me.dna.maxForce) { steer.setMag(me.dna.maxForce);}
 
         return steer;

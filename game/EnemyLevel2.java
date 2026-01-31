@@ -1,7 +1,6 @@
 package game;
 
 import aa.Pursuit;
-import aa.Seek;
 import aa.Wander;
 import physics.Body;
 import processing.core.PApplet;
@@ -16,21 +15,27 @@ public class EnemyLevel2 extends Enemy {
 
     protected EnemyLevel2(PVector pos, float radius, PImage sprite, PApplet p) {
         super(pos, radius, sprite, p);
-        this.hp = 75;
-        this.maxY = p.height / 2f; // para descer mais um bocadinho
+        this.hp = 2;  //é necessário 2 tiros do player para matar
+        this.maxY = p.height / 2f; //para descer mais
 
-        this.seekWeight = (float) (0.4f + Math.random() * 1f);
+        this.seekWeight = 1.2f;
+        
+        this.dna.maxSpeed = 180;
+        this.dna.maxForce = 60; 
     }
 
     @Override
     protected void initBehaviors() {
+    	addBehavior(new Wander(1.0f)); //wander como base
     }
 
     public void setupTarget(Body target, List<Body> trackingList) {
-        setTarget(target, trackingList);
-
-        addBehavior(new Pursuit(seekWeight));
-        //System.out.println("Level 2:" + this.getBehaviors());
-        //addBehavior(new Wander(0.1f));
+    	  setTarget(target, trackingList);
+    	  
+    	  //os pursuers perseguem o player mais rápido 
+    	  this.dna.maxSpeed *= 1.25f;   //+25% speed
+    	  this.dna.maxForce *= 1.15f;   //+15% force
+    	  
+          addBehavior(new Pursuit(seekWeight)); //só os escolhidos no EnemyManager recebem pursuit
     }
 }
