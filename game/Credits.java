@@ -69,7 +69,7 @@ public class Credits implements GameState {
         p.fill(0);
         
        //mascaras pretas para esconder o texto fora da zona visivel
-        float headerHeigh = p.height * 0.35f;   //altura limite no topo
+        float headerHeigh = p.height * 0.15f;   //altura limite no topo
         float footerY = p.height * 0.75f;       //altura limite do botão
 
         p.rect(0, 0, p.width, headerHeigh);                  //tapar o texto que ja subiu
