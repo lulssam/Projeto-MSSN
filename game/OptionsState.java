@@ -7,18 +7,19 @@ import ui.AssetManager;
 import ui.Buttons;
 
 /**
- * Estado que representa o ecrã de opções do jogo
- * 
- * Este estado permite ajustar definições globais que afetam o jogo.
- * 
- * Funcionalidades principais:
- *  - Slider para controlo do volume global
- *  - Checkbox para mute total (desativa o volume)
- *  - Opção de dar reset ao score
- *  - Botão para regressar ao menu principal
- * 
- * As alterações feitas aqui atualizam diretamente as Settings do jogo
- * e aplicam-se ao SoundManager em tempo real
+ * Estado que representa o ecrã de opções do jogo.
+ *
+ * Este estado permite ajustar definições globais que afetam o jogo em tempo real:
+ *  - slider para controlo do volume global
+ *  - checkbox para mute total (ignora o volume)
+ *  - botão para reset do score com confirmação (pop-up)
+ *  - botão para regressar ao menu principal
+ *
+ * As alterações atualizam diretamente Settings e são aplicadas ao
+ * audio.SoundManager imediatamente, garantindo feedback instantâneo.
+ *
+ * Quando o pop-up de confirmação está ativo, apenas os seus botões
+ * recebem input, evitando cliques acidentais nos controlos por trás.
  */
 
 public class OptionsState implements GameState {
@@ -50,7 +51,7 @@ public class OptionsState implements GameState {
     @Override
     public void onEnter(PApplet p) {
     	starsBg = AssetManager.get().img("stars");
-    	layout(p);
+    	layout(p); //calcula posicoes e dimensoes em funcao da resolucao
     }
     
     private void layout(PApplet p) {
@@ -64,7 +65,7 @@ public class OptionsState implements GameState {
         sliderX = (p.width - sliderW) / 2f;
         sliderY = p.height * 0.40f;
 
-        //checkbox
+        //checkbox de mute (posicionada com base no tamanho do texto)
         cbSize = 22;
         float labelWidth = 50;
         float spacing = 12;     
@@ -94,8 +95,9 @@ public class OptionsState implements GameState {
     @Override
     public void update(PApplet p, float dt) {
     	
+    	//scroll do background
     	starsOffset += 20 * dt;
-    	if (starsBg != null && starsOffset > starsBg.height) starsOffset = 0;
+    	if (starsBg != null && starsOffset > starsBg.height) {starsOffset = 0;}
 
         back.update(p, dt);
         resetScore.update(p, dt);
@@ -106,7 +108,7 @@ public class OptionsState implements GameState {
             cancelReset.update(p, dt);
         }
         
-        //arrastar volume só se não estiver muted
+        //arrastar volume apenas quando nao esta muted
         if (!app.settings().muted && draggingVolume) {
             float t = (p.mouseX - sliderX) / sliderW;
             t = PApplet.constrain(t, 0, 1);
@@ -131,7 +133,7 @@ public class OptionsState implements GameState {
     	    }
     	}
 
-    	//overlay base
+    	//overlay escuro para dar contraste aos controlos
     	p.noStroke();
     	p.fill(0, 170);
     	p.rect(0, 0, p.width, p.height);
@@ -171,8 +173,8 @@ public class OptionsState implements GameState {
         resetScore.display(p);
         back.display(p);
         
-        //popup em cima de tudo
-        if (showResetPopup) drawResetPopup(p);
+        //popup desenhado por cima de tudo quando ativo
+        if (showResetPopup) { drawResetPopup(p);}
     }
     
     
@@ -186,14 +188,14 @@ public class OptionsState implements GameState {
         p.fill(40);
         p.rect(sliderX, sliderY, sliderW, sliderH, 8);
 
-        //fill (se muted, deixa mais escuro)
-        if (app.settings().muted) p.fill(0, 255, 0, 60);
+        //fill do slider fica mais escuro quando muted para indicar estado inativo
+        if (app.settings().muted) { p.fill(0, 255, 0, 60);}
         else p.fill(0, 255, 0, 180);
         p.rect(sliderX, sliderY, sliderW * t, sliderH, 8);
 
         //knob
         float kx = sliderX + sliderW * t;
-        if (app.settings().muted) p.fill(0, 255, 0, 90);
+        if (app.settings().muted) { p.fill(0, 255, 0, 90);}
         else p.fill(0, 255, 0);
         p.rect(kx - 6, sliderY - 6, 12, sliderH + 12, 6);
 
@@ -262,7 +264,7 @@ public class OptionsState implements GameState {
 
         //texto
         PFont ui = AssetManager.get().font("ui");
-        if (ui != null) p.textFont(ui);
+        if (ui != null) { p.textFont(ui);}
 
         p.fill(200, 255, 200);
         p.textAlign(PApplet.CENTER, PApplet.CENTER);
@@ -299,11 +301,11 @@ public class OptionsState implements GameState {
 
     @Override
     public void keyPressed(PApplet p) {
-        if (p.key == 'm' || p.key == 'M') app.setState(new MenuState(app), p);
+        if (p.key == 'm' || p.key == 'M') app.setState(new MenuState(app), p); 
         
-        //ESC fecha pop-up de reset do score
+        //esc fecha apenas o pop-up (e impede processing de fechar a app)
         if (p.key == PApplet.ESC && showResetPopup) {
-            p.key = 0;  //impedir Processing de fechar a app em si
+            p.key = 0;
             showResetPopup = false;
             draggingVolume = false;
         }
@@ -313,7 +315,7 @@ public class OptionsState implements GameState {
     @Override
     public void mousePressed(PApplet p) {
     	
-    	//se pop-up aberto, só ele recebe clicks
+    	//quando o pop-up esta aberto, só ele recebe clicks
         if (showResetPopup) {
             if (confirmReset.isClicked(p)) {
                 app.settings().lastScore = 0;
@@ -360,16 +362,10 @@ public class OptionsState implements GameState {
         draggingVolume = false;
     }
 
-	@Override
-	public void mouseDragged(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void mouseDragged(PApplet p) { }
 
-	@Override
-	public void keyReleased(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void keyReleased(PApplet p) { }
 }
 

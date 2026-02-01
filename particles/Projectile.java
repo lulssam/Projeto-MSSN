@@ -7,26 +7,22 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 /**
- * Classe que representa um "projétil" ativo no jogo
- * 
+ * Classe que representa um projétil ativo no jogo.
+ *
  * Um Projectile corresponde a um disparo lançado pelo jogador ou inimigos e combina:
- *  - Movimento fisico simples (posição e velocidade)
- *  - Dano associado
- *  - Efeitos visuais baseados em particulas
- * 
- * O projétil é visualmente representado como uma "bola de fogo",
- * composta por:
- *  - Um núcleo luminoso
- *  - Um efeito de glow em camadas
- *  - Um conjunto de particulas de fogo e rasto
- * 
- * As particulas são geradas continuamente durante o movimento
- * do projétil e removidas automaticamente quando a sua vida termina,
- * garantindo um efeito visual dinâmico sem crescimento excessivo
- * da lista de particulas.
- * 
- * Esta classe não gere colisões, essa responsabilidade pertence
- * a sistemas externos (CollisionSystem)
+ *  - movimento simples (posição e velocidade)
+ *  - dano associado
+ *  - efeitos visuais baseados em partículas
+ *
+ * Visualmente, o projétil é representado como uma "bola de fogo", composta por:
+ *  - núcleo luminoso
+ *  - glow em camadas
+ *  - partículas de aura e rasto geradas durante o movimento
+ *
+ * As partículas são atualizadas e removidas automaticamente quando expiram, e a lista é limitada
+ * para evitar crescimento excessivo e garantir desempenho estável.
+ *
+ * Esta classe não resolve colisões: a deteção e aplicação de dano são feitas por sistemas externos.
  */
 
 public class Projectile {
@@ -52,47 +48,46 @@ public class Projectile {
         pos.add(PVector.mult(vel, dt));
         
         //partículas de fogo 
-        int auraCount = 3; //mais = mais fogo
+        int auraCount = 3; //quantidade de particulas por frame no glow (mais = mais fogo)
         for (int i = 0; i < auraCount; i++) {
             float ang = (float)(Math.random() * Math.PI * 2);
-            float r = (float)(Math.random() * radius * 1.2f);
+            float r = (float)(Math.random() * radius * 1.2f);  //espalha spawn ligeiramente fora do raio para aura parecer viva
 
             PVector spawn = new PVector(pos.x + (float)Math.cos(ang) * r, pos.y + (float)Math.sin(ang) * r);
 
             //velocidade pequena aleatória
             PVector pv = new PVector((float)(Math.random() * 50 - 25), (float)(Math.random() * 50 - 25));
-            pv.mult(0.02f);
+            pv.mult(0.02f); //escala para manter jitter pequeno (efeito de chama)
 
             particleProjectiles.add(new ParticleProjectile(spawn, pv, radius * 2.2f, 0.18f, this.color));
         }
 
-        //trail para tras
+        //rasto (trail) leve para nao sobrecarregar
         int trailCount = 1;
         for (int i = 0; i < trailCount; i++) {
             PVector spawn = pos.copy();
 
             //direção oposta da vel
             PVector back = vel.copy();
-            if (back.mag() > 0.001f){back.normalize();}
-            back.mult(-0.08f * radius);
+            if (back.mag() > 0.001f){back.normalize();}  //evita normalizar vetor quase zero
+            back.mult(-0.08f * radius);  //offset para tras do projetil (rasto nasce atras do nucleo)
 
             spawn.add(back);
 
             PVector pv = new PVector((float)(Math.random() * 30 - 15), (float)(Math.random() * 80 + 40));
-            pv.mult(0.01f);
+            pv.mult(0.01f);  //rasto mais lento/suave que a aura
 
             particleProjectiles.add(new ParticleProjectile(spawn, pv, radius * 2.0f, 0.25f, this.color));
         }
         
-        //atualizar/remover particulas
+        //remove particulas expiradas
         for (int i = particleProjectiles.size() - 1; i >= 0; i--) {
-            ParticleProjectile sp = particleProjectiles.get(i);
-            sp.update(dt);
-            if (sp.dead()){
-                particleProjectiles.remove(i);}
+            ParticleProjectile par = particleProjectiles.get(i);
+            par.update(dt);
+            if (par.dead()) particleProjectiles.remove(i);
         }
 
-        //evita lista gigante
+        //limite hard para evitar lista gigante e quedas de fps
         if (particleProjectiles.size() > 120) {
             particleProjectiles.subList(0, particleProjectiles.size() - 120).clear();
         }
@@ -106,7 +101,7 @@ public class Projectile {
 
         //core glow
         p.pushStyle();
-        p.blendMode(PApplet.ADD);
+        p.blendMode(PApplet.ADD);  //blend aditivo para glow mais intenso
         p.noStroke();
 
         //camadas de glow
@@ -134,4 +129,3 @@ public class Projectile {
     public float getRadius() { return radius; }
     public int getDamage() { return damage; }
 }
-

@@ -7,14 +7,18 @@ import processing.core.PVector;
 import ui.AssetManager;
 
 /**
- * Estado de jogo responsável pela execução principal do gameplay.
- * <p>
- * Este estado é independente do nível concreto, utilizando a classe
- * abstrata Level para permitir a progressão entre vários níveis
- * sem alterar a lógica principal do jogo.
- * <p>
- * O PlayState recebe input do utilizador (teclado) e coordena
- * a atualização e desenho de todas as entidades ativas em jogo
+ * Estado principal de gameplay.
+ *
+ * O code PlayState coordena a execução do jogo durante uma sessão, sendo responsável por:
+ *  - gerir o jogador (movimento, disparo, feedback visual de dano)
+ *  - gerir inimigos e ondas por nível (spawn, update, draw)
+ *  - gerir projéteis (player e inimigos) e respetivos efeitos visuais
+ *  - executar deteção de colisões e aplicar consequências (dano, mortes, score)
+ *  - controlar progressão entre níveis e respetivas transições (intro overlay, música)
+ *  - tratar estados terminais: game over e créditos (com fade out)
+ *
+ * A lógica de cada nível é abstraída por Level, permitindo trocar o background
+ * e parâmetros de onda sem duplicar o ciclo principal de gameplay.
  */
 
 public class PlayState implements GameState {
@@ -27,36 +31,34 @@ public class PlayState implements GameState {
     private EnemyManager enemies;
 
     private int lives = 3;  //vidas do player
-    private int score = 0;
+    private int score = 0; //pontuacao atual
 
     private PImage heartFull;
     private PImage heartEmpty;
 
     //projeteis
     private ProjectileManager projectiles;
-    private float shootCooldown = 0.18f; //segundos
-    private float shootTimer = 0f;
+    private float shootCooldown = 0.18f;  //cadencia de tiro do jogador
+    private float shootTimer = 0f; //timer do cooldown
     private boolean shootHeld = false;
 
-    private float hitCooldown = 0.75f;
+    private float hitCooldown = 0.75f; //invencibilidade curta apos levar hit
     private float hitTimer = 0f;
 
     //level intro
     private float levelIntroTimer = 0f;
-    private float levelIntroDuration = 3.5f; //segundos
+    private float levelIntroDuration = 3.5f; //duracao do overlay do nivel
     private String levelIntroText = "LEVEL 1";
 
     // fade out
     private boolean isFading;
     private float fadeAlpha;
-    private boolean isFinished;
-
+    
     public PlayState(GameApp app) {
         this.app = app;
 
         isFading = false;
         fadeAlpha = 0;
-        isFinished = false;
     }
 
     @Override
@@ -69,26 +71,26 @@ public class PlayState implements GameState {
         lives = 3; //vidas
         score = 0;
 
-        //o play passa sempre para o nivel 1
+        //nivel inicial (nivel 1)
         currentLevel = 1;
         level = new Level1();
         level.onEnter(p);
 
-        //musica
+        //musica do nivel atual
         app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
 
-        //inicializa o player
+        //player no fundo do ecrã
         PImage playerSprite = AssetManager.get().img("player");
         player = new Player(new PVector(p.width / 2f, p.height * 0.85f), 32, playerSprite);
 
         projectiles = new ProjectileManager(); //inicializa os projeteis
 
-        //inimigos
+        //spawns iniciais
         enemies = new EnemyManager();
         enemies.spawnWaveLevel1(p, 15);
 
-        //overlay
-        levelIntroText = "LEVEL 1"; //mudar para: "LEVEL " + levelNumber quando houver mais niveis
+        //overlay de introducao do nivel
+        levelIntroText = "LEVEL 1";
         levelIntroTimer = levelIntroDuration;
 
         shootTimer = 0f;
@@ -102,39 +104,36 @@ public class PlayState implements GameState {
 
     @Override
     public void update(PApplet p, float dt) {
+    	
+    	//timer do overlay do nivel (o jogo arranca depois de uma pequena pausa)
         if (levelIntroTimer > 0f) {
             levelIntroTimer -= dt;
-        } //timer do overlay
+        }
 
-        level.update(p, dt); // background continua a mexer
-        player.update(dt, p); // jogador pode mexer se para preparar
+        level.update(p, dt); // background continua em animação
+        player.update(dt, p); //player pode mexer durante o intro
 
-        if (levelIntroTimer > 1.5f) return;
+        if (levelIntroTimer > 1.5f) { return;} //bloqueia combate durante a fase inicial do overlay
 
-        //cooldown de levar hit
+        //cooldown de dano para evitar hits seguidos
         if (hitTimer > 0f) {
             hitTimer -= dt;
         }
 
-        //tiros do player
+        //disparo continuo enquanto space estiver pressionado
         shootTimer -= dt;
         if (shootHeld && shootTimer <= 0f) {
             //spawn na ponta da nave
             projectiles.spawnPlayerShot(p, player.gunMuzzle());
             shootTimer = shootCooldown;
         }
-
-        projectiles.update(p, dt); //update projeteis (player + enemy)
-
-        //debug
-        //if (shootHeld) System.out.println("shootHeld true");
-
-
-        enemies.update(p, dt, projectiles); //update inimigos (faz os inimigos dispararem)
+        
+        //atualiza projeteis e inimigos
+        projectiles.update(p, dt);
+        enemies.update(p, dt, projectiles); //inimigos podem disparar
 
         //colisão: tiros do player vs inimigos
         int kills = CollisionSystem.shotsVsEnemies(projectiles.getPlayerShots(), enemies.getEnemies());
-
         if (kills > 0) {
             addScore(kills * 10);
             app.settings().lastScore = score;  //guarda valor para menu e options
@@ -142,7 +141,6 @@ public class PlayState implements GameState {
 
         //colisão: tiros dos inimigos vs player
         if (hitTimer <= 0f && CollisionSystem.enemyShotsVsPlayer(projectiles.getEnemyShots(), player)) {
-
             lives--;
             player.flashDamage(); //ativa a animação de damage
             hitTimer = hitCooldown;
@@ -154,12 +152,14 @@ public class PlayState implements GameState {
                 return;
             }
         }
+        
 
-        //quando inimigos forem todos mortos
+        //progressao de niveis quando a wave termina (quando os inimigos estão todos mortos)
         if (enemies.getEnemies().isEmpty()) {
             currentLevel++; //aumentar nivel
 
             switch (currentLevel) {
+                //transicao para nivel 2
                 case 2:
                     level = new Level2();
                     level.onEnter(p);
@@ -171,8 +171,10 @@ public class PlayState implements GameState {
                     app.sound().playMusic(level.music(), app.settings().volume, app.settings().muted);
 
                     enemies.spawnWaveLevel2(p, 20, player);
-                    projectiles.clear();
+                    projectiles.clear(); //limpa tiros antigos entre niveis
                     break;
+                    
+                //transicao para nivel 3
                 case 3:
                     level = new Level3();
                     level.onEnter(p);
@@ -186,14 +188,16 @@ public class PlayState implements GameState {
                     enemies.spawnWaveLevel3(p, 25, player);
                     projectiles.clear();
                     break;
-                case 4: // game finished
+                    
+                //fim do jogo: inicia fade e vai para creditos    
+                case 4:
                     isFading = true;
             }
         }
-
+        
+        //fade out antes de ir para os creditos
         if (isFading) {
             fadeAlpha += 150 * dt;
-
             if (fadeAlpha >= 255) {
                 fadeAlpha = 255;
                 app.settings().lastScore = score;
@@ -204,16 +208,11 @@ public class PlayState implements GameState {
 
     @Override
     public void display(PApplet p) {
+    	
+    	//ordem de desenho: background -> inimigos -> player -> projeteis -> ui
         level.display(p);
-
         enemies.display(p);
-
-        //debug linha
-        //p.stroke(0, 255, 0, 60);
-        //p.line(0, p.height * 0.85f + 32, p.width, p.height * 0.85f + 32);
-
         player.display(p);
-
         projectiles.display(p);
 
         //instruções
@@ -242,9 +241,7 @@ public class PlayState implements GameState {
         //tempo t: 0..1 (1 no inicio, 0 no fim)
         float t = PApplet.constrain(levelIntroTimer / levelIntroDuration, 0f, 1f);
 
-        //forte no inicio e depois fade no fim
-        //curva
-        float fade = (float) Math.pow(t, 2.2);  //quanto maior, mais tempo forte e fade mais rapido no fim
+        float fade = (float) Math.pow(t, 2.2);  //fade nao linear para ficar forte no inicio e desaparecer suave no fim
         float a = 255f * fade;
 
         p.pushStyle();
@@ -255,8 +252,8 @@ public class PlayState implements GameState {
         p.rect(0, 0, p.width, p.height);
 
         //font do texto
-        if (ui.AssetManager.get().font("ui") != null) {
-            p.textFont(ui.AssetManager.get().font("ui"));
+        if (AssetManager.get().font("ui") != null) {
+            p.textFont(AssetManager.get().font("ui"));
         }
 
         p.textAlign(PApplet.CENTER, PApplet.CENTER);
@@ -339,18 +336,11 @@ public class PlayState implements GameState {
     }
 
     @Override
-    public void mousePressed(PApplet p) {
-    }
+    public void mousePressed(PApplet p) {}
 
     @Override
-    public void mouseReleased(PApplet p) {
-        // TODO Auto-generated method stub
-
-    }
+    public void mouseReleased(PApplet p) {}
 
     @Override
-    public void mouseDragged(PApplet p) {
-        // TODO Auto-generated method stub
-
-    }
+    public void mouseDragged(PApplet p) {}
 }

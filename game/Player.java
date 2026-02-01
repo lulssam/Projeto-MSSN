@@ -7,38 +7,37 @@ import processing.core.PImage;
 import processing.core.PVector;
 
 /**
- * Classe que representa a nave controlada pelo jogador.
- * 
- * O Player é uma entidade que:
- *  - Responde a input do teclado
- *  - Move-se apenas no eixo horizontal
- *  - Não pode sair dos limites do ecrã
- *  - Serve como origem para os disparos do jogador
- * 
- * A lógica de disparo é gerida externamente (PlayState),
- * sendo esta classe responsável apenas por fornecer a posição
- * correta do canhão da nave.
+ * Entidade jogável controlada pelo utilizador.
+ *
+ * O Player representa a nave do jogador e é responsável por:
+ *  - ler estado de input (left/right) e converter em movimento horizontal
+ *  - aplicar suavização de aceleração/desaceleração (interpolação exponencial)
+ *  - aplicar fricção quando não existe input, evitando paragens bruscas
+ *  - limitar a posição aos limites do ecrã (clamp em x)
+ *  - fornecer a posição do canhão (gunMuzzle) para disparos
+ *  - apresentar feedback visual ao levar dano (flash via tint)
+ *
+ * A lógica de disparo e colisões é gerida externamente (ex: PlayState e CollisionSystem).
  */
 
 public class Player extends Body {
 
-    private float speed = 420f; //px/s
-    private float friction = 10f; //parar suave
+    private float speed = 420f; //velocidade horizontal (px/s)
+    private float friction = 10f; //friccao para desacelerar sem input
 
-    private boolean left = false;
-    private boolean right = false;
-    private PImage sprite;
+    private boolean left = false; //input esquerda
+    private boolean right = false; //input direita
+    private PImage sprite; //sprite do jogador
     
     //valores para a animação de damage
-    private float damageFlashTimer = 0f;
-    private final float damageFlashDuration = 0.15f; //150ms
+    private float damageFlashTimer = 0f; //timer do flash de dano
+    private final float damageFlashDuration = 0.15f; //duracao do flash
 
     public Player(PVector pos, float radius, PImage sprite) {
         super(pos, new PVector(), 1.0f, radius, 0);
         this.sprite = sprite;
 
-        //testar
-        this.type = Type.PREY;
+        this.type = Type.PREY; //tipo usado pelo sistema eye
     }
 
     public void setLeft(boolean v) {
@@ -56,32 +55,32 @@ public class Player extends Body {
     public void update(float dt, PApplet p) {
         float dir = 0;
         if (left) dir -= 1;
-        if (right) dir += 1;
+        if (right) dir += 1; //-1 esquerda, +1 direita
 
-        //define velocidade horizontal, mas com suavidade
+        //suaviza mudanca de velocidade para evitar "snaps"
         float targetVx = dir * speed;
         vel.x += (targetVx - vel.x) * (1f - (float) Math.exp(-12f * dt));
 
-        //friction quando não há input
+        //quando nao ha input, aplica friccao para parar suavemente
         if (dir == 0) {
             vel.x *= (1f - (float) Math.exp(-friction * dt));
         }
 
-        pos.x += vel.x * dt; //atualiza posição (só x)
+        pos.x += vel.x * dt; //movimento apenas no eixo x
 
-        //clamp no ecrã (não sai)
+        //clamp para nao sair do ecrã
         float minX = radius;
         float maxX = p.width - radius;
         if (pos.x < minX) pos.x = minX;
         if (pos.x > maxX) pos.x = maxX;
 
 
-        pos.y = p.height * 0.85f; //y fixo
+        pos.y = p.height * 0.85f; //mantem o jogador numa linha fixa (no y)
 
-        if (damageFlashTimer > 0f) { damageFlashTimer -= dt;}
+        if (damageFlashTimer > 0f) { damageFlashTimer -= dt;} //timer do feedback visual de dano
     }
 
-    //posição de onde sai o tiro
+    //ponto de spawn do tiro (topo da nave)
     public PVector gunMuzzle() {
         return new PVector(pos.x, pos.y - radius);
     }
@@ -92,7 +91,7 @@ public class Player extends Body {
     public void display(PApplet p) {
     	 p.pushStyle();
     	 
-    	 //se levar dano 
+    	 //quando leva dano, baixa o alpha do sprite para dar feedback
     	 if (damageFlashTimer > 0f) { p.tint(255, 120);}
     	 else { p.tint(255, 255);}
     	

@@ -6,7 +6,7 @@ import processing.core.PApplet;
  * Classe abstrata que representa um nivel do jogo.
  * 
  * Um Level é responsável por:
- *  - Inicializar o conteúdo específico do nivel (background, inimigos, scores, etc...)
+ *  - Inicializar o conteúdo específico do nivel (background, inimigos, scores, ...)
  *  - Atualizar a lógica do nivel ao longo do tempo
  *  - Desenhar o cenário do nivel no ecrã
  *  - Definir a música associada ao nivel
@@ -24,5 +24,8 @@ public abstract class Level {
     public abstract void update(PApplet p, float dt);
     public abstract void display(PApplet p);
     public abstract String music();
-    
+	public boolean lasersEnabled() {
+		return false;
+	}
+
 }

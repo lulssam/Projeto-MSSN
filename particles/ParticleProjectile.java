@@ -5,32 +5,31 @@ import processing.core.PVector;
 
 
 /**
- * Classe que representa uma particula visual temporária
- * <p>
- * Uma ParticleProjectile é utilizada para efeitos visuais como:
- * - Fogo dos disparos
- * - Trilhos de energia
- * - Explosões simples
- * <p>
- * Cada particula possui:
- * - Posição e velocidade
- * - Tempo de vida limitado
- * - Tamanho base e variação visual (flicker)
- * <p>
- * Ao longo do tempo, a particula:
- * - Perde velocidade (efeito de dissipação)
- * - Diminui de tamanho
- * - Transita de cor (amarelo → laranja → vermelho)
- * - Desaparece quando a vida termina
- * <p>
- * Esta classe é puramente visual e não contém lógica de colisão
- * ou gameplay
+ * Classe que representa uma partícula visual temporária associada a projéteis.
+ *
+ * Uma ParticleProjectile é utilizada exclusivamente para efeitos visuais como:
+ *  - fogo dos disparos
+ *  - trilhos de energia
+ *  - explosões simples e dissipação
+ *
+ * Cada partícula possui:
+ *  - posição e velocidade próprias
+ *  - tempo de vida limitado
+ *  - tamanho base com variação visual (flicker)
+ *
+ * Ao longo do tempo, a partícula:
+ *  - perde velocidade (efeito de dissipação/exponencial)
+ *  - diminui de tamanho
+ *  - perde opacidade progressivamente
+ *  - desaparece quando o tempo de vida termina
+ *
+ * Esta classe é puramente visual e não contém lógica de colisão ou gameplay.
  */
 
 
 public class ParticleProjectile {
     PVector pos, vel;
-    float life, maxLife;  //segundos
+    float life, maxLife;  //tempo de vida atual e total (segundos)
     private float baseSize;
     private float seed;
     private int color;
@@ -41,14 +40,14 @@ public class ParticleProjectile {
         this.baseSize = size;
         this.life = life;
         this.maxLife = life;
-        this.seed = (float) Math.random() * 1000f;
+        this.seed = (float) Math.random() * 1000f;  //seed para flicker visual nao sincronizado
         this.color = color;
     }
 
     public void update(float dt) {
-        pos.add(PVector.mult(vel, dt));
+        pos.add(PVector.mult(vel, dt)); //movimento simples da particula
 
-        //fumo/fogo
+        //dissipacao exponencial da velocidade (fogo/fumo a "morrer")
         vel.mult((float) Math.exp(-3f * dt));
 
         life -= dt;
@@ -59,21 +58,15 @@ public class ParticleProjectile {
     }
 
     public void display(PApplet p) {
-        float t = PApplet.constrain(life / maxLife, 0, 1); // 1 -> 0
+        float t = PApplet.constrain(life / maxLife, 0, 1); //fator de vida normalizado (1 -> 0)
 
-        //flicker
+        //flicker sinusoidal para efeito de chama instavel
         float flicker = 0.75f + 0.25f * (float) Math.sin(seed + p.frameCount * 0.35f);
 
-        //tamanho diminui ao morrer
+        //tamanho diminui progressivamente com o tempo de vida
         float s = baseSize * (0.6f + 0.8f * t) * flicker;
 
-        //cor: amarelo -> laranja -> vermelho
-        /*int c;
-        if (t > 0.66f) c = p.color(255, 220, 120);
-        else if (t > 0.33f) c = p.color(255, 140, 40);
-        else c = p.color(255, 60, 0);*/
-
-        float alpha = 255 * t;
+        float alpha = 255 * t;  //fade-out progressivo
 
         p.pushStyle();
         p.noStroke();

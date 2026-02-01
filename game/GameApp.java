@@ -7,18 +7,20 @@ import audio.SoundManager;
 
 /**
  * Classe principal da aplicação do jogo.
- * 
+ *
  * O GameApp é responsável por:
- *  - Inicializar recursos globais (assets, som, definições)
- *  - Gerir o estado atual do jogo (menu, opções, jogo, game over, etc...)
- *  - Encaminhar inputs do utilizador (teclado e rato) para o estado ativo
- *  - Controlar o ciclo principal de atualização e desenho
- * 
- * Esta classe segue o padrão State, permitindo que cada ecrã do jogo
- * seja implementado como um GameState independente.
- * 
- * O GameApp atua como ponto central de comunicação entre estados,
- * fornecendo acesso partilhado às Settings e ao SoundManager.
+ *  - inicializar recursos globais (assets, definições, som)
+ *  - gerir o estado atual do jogo (menu, opções, jogo, game over, ...)
+ *  - encaminhar inputs do utilizador (teclado e rato) para o estado ativo
+ *  - controlar o ciclo principal de atualização e desenho (update + render)
+ *
+ * A aplicação segue o padrão State, onde cada ecrã do jogo é implementado
+ * como um GameState independente. A transição de estados é feita
+ * através de "#setState(GameState, PApplet)", chamando onExit
+ * no estado anterior e onEnter no novo estado.
+ *
+ * O GameApp atua como ponto central de partilha de recursos comuns,
+ * fornecendo acesso às Settings e ao SoundManager.
  */
 
 public class GameApp implements IProcessingApp {
@@ -33,13 +35,14 @@ public class GameApp implements IProcessingApp {
 
     @Override
     public void setup(PApplet p) {
-        AssetManager.get().load(p); //imagens/fonts
+        AssetManager.get().load(p); //carrega recursos globais uma vez
         
-        p.getSurface().setSize(settings.width, settings.height); //aplica tamanho inicial definido nas settings
+        p.getSurface().setSize(settings.width, settings.height); //aplica resolução inicial definido nas settings
         
-        setState(new MenuState(this), p);
+        setState(new MenuState(this), p); //estado inicial do jogo
     }
-
+    
+   //transicao de estados: limpa estado anterior e inicializa o novo
     public void setState(GameState newState, PApplet p) {
         if (state != null) state.onExit(p);
         state = newState;
@@ -49,8 +52,8 @@ public class GameApp implements IProcessingApp {
     @Override
     public void draw(PApplet p, float dt) {
         if (state == null) return;
-        state.update(p, dt);
-        state.display(p);
+        state.update(p, dt); //logica do estado
+        state.display(p); //desenho do estado
     }
 
     @Override

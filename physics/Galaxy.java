@@ -1,6 +1,7 @@
 package physics;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import processing.core.PApplet;
@@ -9,12 +10,30 @@ import processing.core.PImage;
 import processing.core.PVector;
 import ui.AssetManager;
 
+/**
+ * Classe responsável por desenhar o background do Nível 3 (Galáxia) através de partículas.
+ *
+ * Esta classe gera uma galáxia em espiral de forma procedimental, composta por três camadas:
+ *  - haze: poeira difusa e suave (base)
+ *  - highlights: estrelas/partículas mais definidas (brilho)
+ *  - denseHighlights: braços mais densos ("tentáculos") para dar estrutura à espiral
+ *
+ * A emissão de partículas é contínua (flow em partículas/segundo) e depende de dt,
+ * criando um efeito de rotação global através de globalAngle. A distribuição espacial
+ * segue uma espiral logarítmica (controlada por spiralTightness) e a galáxia é
+ * achatada no eixo vertical através de flatten.
+ *
+ * O núcleo é desenhado com um efeito de glow/pulso (corePulse).
+ *
+ * Esta classe é puramente visual: não contém colisões, inimigos, nem lógica de gameplay.
+ */
+
 
 public class Galaxy {
 
-    private final List<ParticlePhysics> haze = new ArrayList<>(); //particulas menos definidas de "poeira"
+    private final List<ParticlePhysics> haze = new ArrayList<>();    //particulas menos definidas de "poeira"
     private final List<ParticlePhysics> highlights = new ArrayList<>();
-    private final List<ParticlePhysics> denseHighlights = new ArrayList<>(); //"tentaculos"
+    private final List<ParticlePhysics> denseHighlights = new ArrayList<>();   //"tentaculos"
 
     private PVector center;
     private float globalAngle = 0f;
@@ -27,38 +46,37 @@ public class Galaxy {
     private int pink;
 
     //tamanho e forma
-    private int arms = 5;
-    private float flatten = 0.75f;  //achatado
+    private int arms = 5;  //numero de bracos da espiral
+    private float flatten = 0.75f;  //achatamento vertical
     private float galaxyRadius;
-    private float coreRadius = 22f;
+    private float coreRadius = 22f;  //raio base do nucleo
 
     //espiral
-    private float spiralTightness = 3.2f;
-    private float armSpreadHaze = 0.55f;
-    private float armSpreadStars = 0.20f;
-
-    private float armSpreadDense = 0.10f;  //tentaculos
+    private float spiralTightness = 3.2f;  //quao "fechada" é a espiral
+    private float armSpreadHaze = 0.55f;  //desvio angular grande para a poeira
+    private float armSpreadStars = 0.20f;  //desvio angular menor para estrelas mais definidas
+    private float armSpreadDense = 0.10f;  //desvio angular minimo para bracos mais densos ("tentaculos")
 
     //rotação
-    private float rotationSpeed = 0.16f;
+    private float rotationSpeed = 0.16f; //rotacao global (rad/s)
     private float corePulse = 0f;
-
-    private float hazeFlow = 380f;
+    
+    //particulas/segundo
+    private float hazeFlow = 380f; 
     private float starFlow = 140f;
-
-    private float denseFlow = 90f;    //highlights
-    private int denseArmsCount = 3; 
+    private float denseFlow = 90f;   //braços
+    
+    private int denseArmsCount = 3;  //quantos bracos ficam densos por ciclo
     private int[] denseArms;    //indices dos braços mais densos (escolhido no onEnter)
 
     public void onEnter(PApplet p) {
-        starsBg = AssetManager.get().img("stars");
+        starsBg = AssetManager.get().img("stars");  //background de estrelas
 
         center = new PVector(p.width / 2f, p.height / 2f);
         globalAngle = 0f;
         corePulse = 0f;
 
-        galaxyRadius = Math.min(p.width, p.height) * 0.38f;
-
+        galaxyRadius = Math.min(p.width, p.height) * 0.38f;  //raio da galaxia
         purple = p.color(190, 70, 255);
         blue = p.color(70, 200, 255);
         pink = p.color(255, 110, 170);
@@ -80,7 +98,7 @@ public class Galaxy {
         emitLayer(p, dt, hazeFlow, 0);
         emitLayer(p, dt, starFlow, 1);
 
-        //camada tentáculos (denso)
+        //camada tentaculos (denso)
         emitLayer(p, dt, denseFlow, 2);
 
         updateList(haze, dt);
@@ -106,7 +124,9 @@ public class Galaxy {
     * 2 = highlights densos
     */
     private void emitLayer(PApplet p, float dt, float flow, int layerType) {
-        float particlesPerFrame = flow * dt;
+    	
+        float particlesPerFrame = flow * dt; //multiplica-se por dt para obter particulas deste frame
+        
         int n = (int) particlesPerFrame;
         float frac = particlesPerFrame - n;
 
@@ -120,8 +140,16 @@ public class Galaxy {
 
         //raio
         float t = (float) Math.random();
-        float bias = isHaze ? 0.55f : (isDense ? 0.82f : 0.70f);
-
+        float bias;
+        if(isHaze) {
+        	bias = 0.55f;
+        } else if (isDense) {
+        	bias = 0.82f;
+        } else {
+        	bias = 0.70f;
+        }
+        
+        //bias controla onde nasce mais: haze mais para fora, dense mais perto do braco
         float r = coreRadius + (float) Math.pow(t, bias) * (galaxyRadius - coreRadius);
 
         //braço
@@ -134,7 +162,7 @@ public class Galaxy {
         }
         float armOffset = armIndex * (PConstants.TWO_PI / arms);
 
-        //ângulo espiral
+        //espiral logaritmica: theta cresce com log(r), dando a aparência de espiral
         float theta = spiralTightness * (float) Math.log(r / coreRadius + 1e-4f);
         theta += armOffset;
 
@@ -148,16 +176,16 @@ public class Galaxy {
         	spread = armSpreadStars;
         }
 
-        theta += ((float) Math.random() * 2f - 1f) * spread;
+        theta += ((float) Math.random() * 2f - 1f) * spread; //adiciona "ruido" angular à volta do braco para espessura
 
-        theta += globalAngle; //rotação
+        theta += globalAngle; //rotação global
 
         //posição
         float x = center.x + r * PApplet.cos(theta);
         float y = center.y + r * PApplet.sin(theta) * flatten;
         PVector spawnPos = new PVector(x, y);
 
-        //velocidade tangencial lenta
+        //vetor tangencial para movimento circular à volta do centro
         PVector tang = new PVector(-PApplet.sin(theta), PApplet.cos(theta));
         tang.y *= flatten;
         tang.normalize();
@@ -168,7 +196,7 @@ public class Galaxy {
             vOuter = 7f;
             
         } else if (isDense) {
-            //tentáculos: um bocadinho mais rápidos para “puxarem” o braço
+            //tentaculos: um bocadinho mais rapidos para "puxarem" o braço
             vInner = 85f; 
             vOuter = 28f;
             
@@ -177,22 +205,40 @@ public class Galaxy {
             vOuter = 22f;
         }
         
-        float v = PApplet.lerp(vInner, vOuter, r / galaxyRadius);
+        //lerp: mais rapido perto do centro, mais lento na periferia
+        float v = PApplet.lerp(vInner, vOuter, r / galaxyRadius); 
 
-        //drift radial pequeno
-        float drift = isHaze ? 1.6f : (isDense ? 2.8f : 2.4f);
+        //drift radial pequeno para evitar criações demasiado perfeitas
+        float drift;
+        if (isHaze) { 
+        	drift = 1.6f;
+        } else if (isDense) { 
+        	drift = 2.8f;
+        } else {
+        	drift = 2.4f;
+        }
+        
         PVector radial = PVector.sub(spawnPos, center);
         if (radial.magSq() > 0.0001f) { radial.normalize();}
         radial.mult(drift);
 
         //noise baixo
-        float noiseAmp = isHaze ? 0.8f : (isDense ? 1.0f : 2.0f);
+        float noiseAmp;
+        if (isHaze) { 
+        	noiseAmp = 0.8f;
+        } else if (isDense) { 
+        	noiseAmp = 1.0f;
+        } else {
+        	noiseAmp = 2.0f;
+        }
+        
+        //noise baixo para quebrar padroes repetitivos
         PVector noise = PVector.random2D().mult(noiseAmp);
         noise.y *= flatten;
 
         PVector spawnVel = tang.mult(v).add(radial).add(noise);
 
-        //cor base roxo->azul
+        //cor base roxo -> azul
         float mix = r / galaxyRadius;
         int base = p.lerpColor(purple, blue, mix);
 
@@ -216,21 +262,41 @@ public class Galaxy {
         }
 
         //highlights
-        pr = isDense ? lerp(1.0f, 2.2f, (float) Math.random())
-                     : lerp(1.0f, 2.4f, (float) Math.random());
-
-        life = isDense ? lerp(1.6f, 3.2f, (float) Math.random())
-                       : lerp(1.2f, 2.8f, (float) Math.random());
+        if (isDense) {
+            pr = lerp(1.0f, 2.2f, (float) Math.random());
+            life = lerp(1.6f, 3.2f, (float) Math.random());
+        } else {
+            pr = lerp(1.0f, 2.4f, (float) Math.random());
+            life = lerp(1.2f, 2.8f, (float) Math.random());
+        }
 
         //cor dos highlights
-        float pinkChance = isDense ? 0.45f : 0.28f;
-        int starCol = (Math.random() < pinkChance)
-                ? p.lerpColor(pink, p.color(255), 0.20f)
-                : p.lerpColor(base, p.color(255), isDense ? 0.65f : 0.55f);
+        float pinkChance;
+        if (isDense) {
+            pinkChance = 0.45f;
+        } else {
+            pinkChance = 0.28f;
+        }
+        
+        //cor do resto
+        int starCol;
+        if (Math.random() < pinkChance) {
+            starCol = p.lerpColor(pink, p.color(255), 0.20f);
+        } else {
+            if (isDense) {
+                starCol = p.lerpColor(base, p.color(255), 0.65f);
+            } else {
+                starCol = p.lerpColor(base, p.color(255), 0.55f);
+            }
+        }
 
-        //alpha: braços mais fortes
-        float a = isDense ? lerp(170f, 255f, (float) Math.random())
-                          : lerp(120f, 235f, (float) Math.random());
+        //alpha: braços mais densos
+        float a;
+        if (isDense) {
+            a = lerp(170f, 255f, (float) Math.random());
+        } else {
+            a = lerp(120f, 235f, (float) Math.random());
+        }
 
         c = withAlpha(p, starCol, a);
 
@@ -246,11 +312,11 @@ public class Galaxy {
         p.imageMode(PApplet.CORNER);
         if (starsBg != null) { p.image(starsBg, 0, 0, p.width, p.height);}
 
-        //haze suave (base)
+        //blend normal para haze (base suave)
         p.blendMode(PApplet.BLEND);
         for (ParticlePhysics par : haze) par.display(p);
 
-        //highlights + tentaculos (brilho/definição)
+        //add para highlights: soma cores e cria brilho neon
         p.blendMode(PApplet.ADD);
         for (ParticlePhysics par : highlights) { par.display(p);}
         for (ParticlePhysics par : denseHighlights) { par.display(p);}
@@ -261,7 +327,7 @@ public class Galaxy {
     }
 
     private void drawCoreGlow(PApplet p) {
-        float pulse = 0.5f + 0.5f * PApplet.sin(corePulse);
+        float pulse = 0.5f + 0.5f * PApplet.sin(corePulse); //pulso 0..1 para variar alpha e ter um nucleo mais "vivo"
 
         p.pushStyle();
         p.noStroke();
@@ -285,7 +351,7 @@ public class Galaxy {
     private int[] pickRandomArms(int n, int totalArms) {
         ArrayList<Integer> idx = new ArrayList<>();
         for (int i = 0; i < totalArms; i++) { idx.add(i);}
-        java.util.Collections.shuffle(idx);
+        Collections.shuffle(idx);
 
         int[] out = new int[n];
         for (int i = 0; i < n; i++) { out[i] = idx.get(i);}

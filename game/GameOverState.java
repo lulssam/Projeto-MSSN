@@ -4,18 +4,16 @@ import processing.core.PApplet;
 import ui.Buttons;
 
 /**
- * Estado que representa o ecrã de fim de jogo
- * 
- * O GameOverState é apresentado quando o jogador perde todas as vidas.
- * 
- * Este estado é responsável por:
- *  - Mostrar a mensagem "Game Over"
- *  - Apresentar a pontuação final do jogador
- *  - Disponibilizar uma opção para regressar ao menu principal
- *  - Tratar input do utilizador para sair deste estado
- * 
- * Não contém lógica de jogo ativa, funcionando apenas como
- * um ecrã informativo e de transição.
+ * Estado que representa o ecrã de fim de jogo.
+ *
+ * O GameOverState é apresentado quando o jogador perde todas as vidas e é responsável por:
+ *  - apresentar a mensagem de fim ("game over")
+ *  - mostrar a pontuação final do jogador
+ *  - disponibilizar uma transição de volta ao menu
+ *  - guardar o último score nas settings
+ *
+ * Este estado não executa lógica de gameplay, funcionando apenas como
+ * ecrã informativo e de transição.
  */
 
 public class GameOverState implements GameState {
@@ -32,7 +30,7 @@ public class GameOverState implements GameState {
 
     @Override
     public void onEnter(PApplet p) {
-    	app.sound().playMusic("/game_over.wav", app.settings().volume, app.settings().muted);
+    	app.sound().playMusic("/game_over.wav", app.settings().volume, app.settings().muted); //musica de game over
     	
         float bw = 260, bh = 60;
         back = new Buttons((p.width - bw) / 2f, p.height * 0.70f, bw, bh, "Back to Menu");
@@ -51,10 +49,10 @@ public class GameOverState implements GameState {
         p.fill(255);
         p.textAlign(PApplet.CENTER, PApplet.CENTER);
         p.textSize(44);
-        p.text("GAME OVER", p.width / 2f, p.height * 0.25f);
+        p.text("GAME OVER", p.width / 2f, p.height * 0.25f); //titulo principal
 
-        p.textSize(22);
-        p.text("Score: " + score, p.width / 2f, p.height * 0.40f);
+        p.textSize(22); 
+        p.text("Score: " + score, p.width / 2f, p.height * 0.40f); //pontuacao final
 
         back.display(p);
     }
@@ -62,7 +60,7 @@ public class GameOverState implements GameState {
     @Override
     public void keyPressed(PApplet p) {
         if (p.key == 'm' || p.key == 'M') { 
-        	app.settings().lastScore = score;
+        	app.settings().lastScore = score; //guarda score para mostrar no menu
             app.setState(new MenuState(app, score), p);
         }
     }
@@ -70,26 +68,17 @@ public class GameOverState implements GameState {
     @Override
     public void mousePressed(PApplet p) {
         if (back.isClicked(p)) {
-        	app.settings().lastScore = score;
+        	app.settings().lastScore = score; //guarda score para mostrar no menu
         	app.setState(new MenuState(app, score), p);
         }
     }
 
-	@Override
-	public void mouseReleased(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void mouseReleased(PApplet p) { }
 
-	@Override
-	public void mouseDragged(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void mouseDragged(PApplet p) { }
 
-	@Override
-	public void keyReleased(PApplet p) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void keyReleased(PApplet p) { }
 }

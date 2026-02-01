@@ -10,12 +10,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Classe responsável por desenhar o background do Nivel 2 (Sistema Solar)
+ * Classe responsável por desenhar o background do Nível 2 (Sistema Solar).
+ *
+ * Este cenário simula órbitas de planetas e um cinto de asteroides em torno do Sol,
+ * usando uma aproximação gravitacional simples (força central sol -> corpo).
+ *
+ * As posições e velocidades iniciais são baseadas em valores reais (ordens de grandeza),
+ * mas a simulação é acelerada através do fator speedUp para que o movimento seja
+ * perceptível em tempo real.
+ *
+ * A conversão entre coordenadas do "mundo" (distâncias astronómicas) e píxeis é feita
+ * com SubPlot, permitindo controlar zoom e janela de visualização.
+ *
+ * Esta classe é puramente visual: não contém colisões, inimigos ou lógica de gameplay.
  */
 
 public class SolarSystem {
-    private static final double G = 6.67e-11;
-    private final float speedUp = 60 * 15 * 24 * 30 * 2;
+    private static final double G = 6.67e-11;   //constante gravitacional (escala real)
+    private final float speedUp = 60 * 15 * 24 * 30 * 2; //acelera o tempo da simulacao para as orbitas serem visiveis
 
     //SOL
     private final float sunMass = 1.989e30f;
@@ -73,13 +85,11 @@ public class SolarSystem {
     private float zoom = 5f;
     private double[] window = {-zoom * distEarthSun, zoom * distEarthSun, -zoom * distEarthSun, zoom * distEarthSun};
     private SubPlot plt;
-    private CelestialBody sun, mercury, venus, earth, mars, jupiter, saturn, ringSaturn1, ringSaturn2, uranus, neptune;
+    private CelestialBody sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
     private List<CelestialBody> planets;
     private List<Asteroid> asteroids;
 
-
-    // fundo de ecrã estrelas
-    private PImage starsBg;
+    private PImage starsBg;  //fundo de ecrã estrelas
 
     public SolarSystem() {
         planets = new ArrayList<>();
@@ -87,13 +97,15 @@ public class SolarSystem {
     }
 
     public void onEnter(PApplet p) {
-        // background
-        starsBg = AssetManager.get().img("stars");
-
-        float maxDist = distMarsSun * 3.5f; // ajustar zoom se quiser ver mais planetas
+        
+        starsBg = AssetManager.get().img("stars");  //background
+        
+        //janela focada nos planetas interiores (ate marte) para nao ficar tudo minusculo
+        float maxDist = distMarsSun * 3.5f; //ajustar zoom se se quiser ver mais planetas
         window = new double[]{-maxDist, maxDist, -maxDist, maxDist};
         plt = new SubPlot(window, viewport, p.width, p.height);
-
+        
+        //imagens dos planetas
         PImage sunImg = AssetManager.get().img("sun");
         PImage mercuryImg = AssetManager.get().img("mercury");
         PImage venusImg = AssetManager.get().img("venus");
@@ -103,7 +115,8 @@ public class SolarSystem {
         PImage saturnImg = AssetManager.get().img("saturn");
         PImage uranusImg = AssetManager.get().img("uranus");
         PImage neptuneImg = AssetManager.get().img("neptune");
-
+        
+        //planetas inicializados no eixo y com velocidade no eixo x (orbita circular)
         sun = new CelestialBody(new PVector(), new PVector(), sunMass, distEarthSun / 5, p.color(255, 128, 0), sunImg);
         mercury = new CelestialBody(new PVector(0, distMercurySun), new PVector(mercurySpeed, 0), mercuryMass, distMercurySun / 10, p.color(183, 184, 185), mercuryImg);
         venus = new CelestialBody(new PVector(0, distVenusSun), new PVector(venusSpeed, 0), venusMass, distVenusSun / 10, p.color(165, 124, 27), venusImg);
@@ -125,25 +138,28 @@ public class SolarSystem {
         planets.add(neptune);
 
         asteroides(p);
-
-        //System.out.println("sunImg" + sunImg.toString());
-
     }
-
+    
+    //método para a criação dos asteroides
     private void asteroides(PApplet p) {
-        asteroids = new ArrayList<>(numAsteroids);
+    	
+        asteroids = new ArrayList<>(numAsteroids); //lista de asteroides
+        
         for (int i = 0; i < numAsteroids; i++) {
+        	
+        	//cinto entre marte e jupiter
             float r = rand(beltInner, beltOuter);
             float theta = rand(0f, (float) (2 * Math.PI));
+            
             //posição do anel
             float x = (float) (r * Math.cos(theta));
             float y = (float) (r * Math.sin(theta));
             PVector pos = new PVector(x, y);
 
-            //velocidade orbital circular v = sqrt(G*M/r), tangente ao raio
+            //velocidade orbital circular aproximada v = sqrt(G*M/r), tangente ao raio
             float v = (float) Math.sqrt(G * sunMass / r);
 
-            //vetor tangente para a orbita no sentido contrario ponteiros do relogio
+            //vetor tangente para orbitar em torno do sol (sentido anti-horario)
             float vx = (float) (-v * Math.sin(theta));
             float vy = (float) (v * Math.cos(theta));
 
@@ -156,7 +172,7 @@ public class SolarSystem {
             float radius = rand(minAstRadius, maxAstRadius);
             int color = p.color(200, 200, 200);
 
-            PImage asteroidImg = AssetManager.get().img("asteroid");
+            PImage asteroidImg = AssetManager.get().img("asteroid");  //imagem do asteroide
 
             Asteroid a = new Asteroid(pos, vel, asteroidMass, radius, color, asteroidImg);
             asteroids.add(a);
@@ -165,32 +181,36 @@ public class SolarSystem {
 
     public void update(PApplet p, float dt) {
 
-        // atualizar planetas (atração sol -> planeta)
+        //atualizar planetas (atração sol -> planeta)
         for (CelestialBody planet : planets) {
-            if (planet == sun) continue; // sol não se mexe
+            if (planet == sun) {continue;}   //sol mantem-se fixo
             PVector f = sun.attraction(planet);
+            
+            //aplica gravidade sol->corpo e integra com tempo acelerado
             planet.applyForce(f);
             planet.move(dt * speedUp);
         }
 
-        // atualizar asteriodes
+        //atualizar asteriodes
         for (Asteroid a : asteroids) {
             PVector f = sun.attraction(a);
             a.applyForce(f);
             a.move(dt * speedUp);
         }
     }
-
+    
+    //desenho em coordenadas do mundo via subplot
     public void display(PApplet p) {
-        // estrelas background
+        //estrelas background
         p.background(10);
         p.imageMode(PApplet.CORNER);
-        if (starsBg != null) p.image(starsBg, 0, 0, p.width, p.height);
+        if (starsBg != null) { p.image(starsBg, 0, 0, p.width, p.height);}
 
-        // desenhar tudo
-        for (CelestialBody planet : planets) planet.display(p, plt);
-
-        for (Asteroid a : asteroids) a.display(p, plt);
+        //desenhar os planetas
+        for (CelestialBody planet : planets) { planet.display(p, plt);}
+        
+        //desenhar os asteroides
+        for (Asteroid a : asteroids) { a.display(p, plt);}
     }
 
     private float rand(float min, float max) {

@@ -2,7 +2,21 @@ package physics;
 
 import processing.core.PVector;
 
-//Classe que controla parâmetros aleatórios das partículas: direção, velocidade, raio, tempo de vida e cor
+/**
+ * Classe responsável por controlar os parâmetros de emissão de um sistema de partículas.
+ *
+ * Um PSControl define intervalos e regras para gerar valores aleatórios usados
+ * na criação de partículas, nomeadamente:
+ *  - direção média e dispersão angular do vetor velocidade
+ *  - velocidades mínima e máxima
+ *  - raio mínimo e máximo
+ *  - tempo de vida mínimo e máximo
+ *  - fluxo de emissão (partículas/segundo)
+ *  - cor base das partículas
+ *
+ * Esta classe não gere partículas diretamente: apenas fornece amostras aleatórias
+ * para serem usadas por um  ParticleSystem.
+ */
 
 public class PSControl {
     private float averageAngle, dispersionAngle, minVelocity, maxVelocity,
@@ -81,7 +95,10 @@ public class PSControl {
     
     //gerar vetor velocidade aleatório
     public PVector getRndVel() {
+    	//angulo dentro do intervalo
         float angle = getRnd(averageAngle - dispersionAngle / 2, averageAngle + dispersionAngle / 2);
+        
+        //vetor unitario com esse angulo, escalado por uma velocidade aleatoria
         PVector v = PVector.fromAngle(angle);
         return v.mult(getRnd(minVelocity, maxVelocity));
     }

@@ -1,18 +1,33 @@
 package aa;
 
 /**
- * Classe DNA onde se encontram parâmetros genéticos do boid (velocidade, força, visão, etc.)
+ * Classe DNA que agrega os parâmetros genéticos de um boid.
+ *
+ * O DNA define limites e características comportamentais do boid, como:
+ *  - velocidade máxima e força máxima
+ *  - parâmetros de visão (distância, ângulo e zona segura)
+ *  - parâmetros temporais usados em behaviors (pursuit, wander, arrive)
+ *
+ * Os valores são inicializados de forma aleatória dentro de intervalos
+ * pré-definidos, permitindo diversidade de comportamento entre boids.
+ *
+ * Esta classe não contém lógica de movimento; apenas fornece parâmetros
+ * usados pelos diferentes Behavior associados ao boid.
  */
 
 public class DNA {
-    public float maxSpeed, maxForce, visionDistance, visionSafeDistance, visionAngle, deltaTPursuit, radiusArrive,
-            deltaTWander, radiusWander, deltaPhiWander;
+	
+    public float maxSpeed, maxForce;  //limites fisicos
+    public float visionDistance, visionSafeDistance, visionAngle;  //parametros de visao
+    public float deltaTPursuit;  //pursuit
+    public float radiusArrive;  //arrive
+    public float deltaTWander, radiusWander, deltaPhiWander;  //wander
 
     public DNA() {
         maxSpeed = random(3, 5);
         maxForce = random(4, 7);
 
-        visionDistance = random(1, 1);
+        visionDistance = random(1, 1); //fixo, mas mantido aleatorio por consistencia
         visionSafeDistance = 0.25f * visionDistance;
         visionAngle = (float) Math.PI * 0.8f;
 
@@ -25,9 +40,10 @@ public class DNA {
         deltaPhiWander = (float) Math.PI / 8;
 
     }
-
+    
+    //gera um valor aleatorio no intervalo [min, max]
     public static float random(float min, float max) {
-        return (float) (min + (max - min) * Math.random()); //gera um valor aleatório entre min e max
+        return (float) (min + (max - min) * Math.random());
     }
 
 }

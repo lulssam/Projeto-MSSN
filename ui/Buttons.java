@@ -4,21 +4,20 @@ import processing.core.PApplet;
 import processing.core.PFont;
 
 /**
- * Classe responsável pela representação e comportamento dos botões da interface
- * 
+ * Classe responsável pela representação e comportamento de botões da interface.
+ *
  * Cada botão gere:
- *  - A sua posição e dimensões
- *  - A deteção de hover e clique do rato
- *  - Animações suaves de hover (escala, glow e opacidade)
- *  - Renderização visual consistente com o estilo do jogo
- * 
- * Os botões utilizam interpolação temporal para as animações,
- * garantindo transições fluidas e responsivas independentemente do framerate.
- * 
- * Esta classe é usada nos vários estados do jogo (Menu, Options, Game Over),
+ *  - posição e dimensões
+ *  - deteção de hover do rato
+ *  - animações suaves de hover (escala, glow e opacidade)
+ *  - renderização visual consistente com o estilo do jogo
+ *
+ * As animações usam interpolação temporal (suavização exponencial) com base em dt,
+ * garantindo transições fluidas e independentes do framerate.
+ *
+ * Esta classe é usada em vários estados do jogo (menu, options, game over),
  * promovendo reutilização e consistência visual na UI.
  */
-
 
 public class Buttons {
     private float x, y, w, h;
@@ -46,16 +45,13 @@ public class Buttons {
         float target = hover ? 1f : 0f;
 
         float k = 10f; //velocidade da animação (maior = mais rapido)
-        hoverT += (target - hoverT) * (1f - (float)Math.exp(-k * dt));
+        hoverT += (target - hoverT) * (1f - (float)Math.exp(-k * dt));  //suavizacao exponencial para transicao independente do framerate
     }
 
     public void display(PApplet p) {
-        boolean hover = isHover(p.mouseX, p.mouseY);
-
-        float r = 10; //cantos redondos
-        int neon = p.color(0, 255, 0);
-        int dark = p.color(0, 0, 0, 170);
-        
+        float r = 10; //raio dos cantos arredondados
+        int neon = p.color(0, 255, 0);  //cor base do estilo neon
+     
         float scale = hoverEnabled ? (1f + 0.03f * hoverT) : 1f;
         float cx = x + w / 2f;
         float cy = y + h / 2f;
@@ -63,7 +59,7 @@ public class Buttons {
         p.pushStyle();
         p.rectMode(PApplet.CENTER);
 
-        //glow (3 rects por tras), aparece no hover
+        //glow em camadas para simular brilho (alpha e espessura aumentam com hoverT)
         if (hoverT > 0.01f) {
             p.noFill();
             p.stroke(neon, (int)(40 + 120 * hoverT));
@@ -82,7 +78,7 @@ public class Buttons {
         //body
         p.noStroke();
         
-        //quando hover, fica mais preenchido
+        //quando hover, o body fica mais preenchido (aumenta alpha)
         p.fill(0, 0, 0, (int)(60 + 120 * hoverT));
         p.rect(cx, cy, w * scale, h * scale, r);
 
@@ -99,13 +95,14 @@ public class Buttons {
         p.textAlign(PApplet.CENTER, PApplet.CENTER);
         p.textSize(textSize); 
 
-        p.fill(neon, (int)(180 + 75 * hoverT));
+        p.fill(neon, (int)(180 + 75 * hoverT)); //texto mais brilhante no hover
         p.text(label, cx, cy - 1);
 
         p.popStyle();
         p.rectMode(PApplet.CORNER);
     }
-
+    
+    //apenas verifica se está em hover
     public boolean isClicked(PApplet p) {
         return isHover(p.mouseX, p.mouseY);
     }
@@ -120,7 +117,7 @@ public class Buttons {
 
     public void setHoverEnabled(boolean enabled) {
         this.hoverEnabled = enabled;
-        if (!enabled) hoverT = 0f;    //kill da animação se desligar
+        if (!enabled) hoverT = 0f;  //reset imediato para evitar ficar preso em estado de hover
     }
     
     public void setBounds(float x, float y, float w, float h) {

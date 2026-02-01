@@ -13,19 +13,32 @@ import ui.AssetManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnemyManager {
-    private final List<Enemy> enemies = new ArrayList<>(); //lista de inimigos
+/**
+ * Gestor de inimigos e ondas (waves) por nível.
+ *
+ * O EnemyManager é responsável por:
+ *  - criar ondas de inimigos para cada nível (spawnWaveLevel1/2/3)
+ *  - configurar comportamentos por grupo (wander, pursuit, flocking)
+ *  - atualizar inimigos (aplicar behaviors) e gerir disparos inimigos
+ *  - desenhar todos os inimigos ativos
+ *
+ * A seleção de inimigos especiais (pursuers/chasers) é feita por índices aleatórios,
+ * permitindo variedade entre partidas sem alterar a estrutura das waves.
+ */
 
-    private float shootTimer = 0f;
+public class EnemyManager {
+    private final List<Enemy> enemies = new ArrayList<>(); //lista de inimigos ativos
+
+    private float shootTimer = 0f; //timer do disparo inimigo
     private float shootInterval = 1.2f; //1 tiro a cada ~1.2s
 
 
     //método para poder criar o grupo de inimigos (wave) do nivel 1
     public void spawnWaveLevel1(PApplet p, int count) {
-        enemies.clear();  //eliminar anteriores caso haja problemas
+        enemies.clear(); //limpa inimigos anteriores
 
-        float r = 26f;   //raio de colisão
-        float topY = p.height * 0.12f;
+        float r = 26f; //raio base/colisao
+        float topY = p.height * 0.12f; //zona superior de spawn
 
         String[] enemyKeys = {"enemy1", "enemy2", "enemy3"}; //existem 3 tipos de imigos que podem spawnar
 
@@ -35,7 +48,7 @@ public class EnemyManager {
             float y = topY + p.random(0, 80);
 
             String pick = enemyKeys[(int) p.random(enemyKeys.length)];  //escolher aletoriamente qual o tipo de inimigo que irá spawnar
-            PImage sprite = ui.AssetManager.get().img(pick);
+            PImage sprite = AssetManager.get().img(pick);
 
             enemies.add(new EnemyLevel1(new PVector(x, y), r, sprite, p));
         }
@@ -44,14 +57,14 @@ public class EnemyManager {
 
     //método para criar inimigos do nivel 2
     public void spawnWaveLevel2(PApplet p, int count, Player player) {
-        enemies.clear();  //eliminar anteriores caso haja problemas
+        enemies.clear(); //limpa inimigos anteriores
 
-        float r = 26f;   //raio de colisão
-        float topY = p.height * 0.12f;
+        float r = 26f;  //raio base/colisao
+        float topY = p.height * 0.12f; //zona superior de spawn
 
         String[] enemyKeys = {"enemy1", "enemy2", "enemy3"}; //existem 3 tipos de imigos que podem spawnar
 
-        // lista com o jogador com alvo para o eye
+        //cria lista com o player para o sistema de visao (eye)
         List<Body> targetList = new ArrayList<>();
         targetList.add(player);
 
@@ -75,7 +88,7 @@ public class EnemyManager {
             float y = topY + p.random(0, 80);
 
             String pick = enemyKeys[(int) p.random(enemyKeys.length)];  //escolher aletoriamente qual o tipo de inimigo que irá spawnar
-            PImage sprite = ui.AssetManager.get().img(pick);
+            PImage sprite = AssetManager.get().img(pick);
 
             EnemyLevel2 enemyLevel2 = new EnemyLevel2(new PVector(x, y), r, sprite, p);
 
@@ -96,9 +109,7 @@ public class EnemyManager {
             if (!chaseSet.contains(i)) continue;
 
             EnemyLevel2 e = (EnemyLevel2) enemies.get(i);
-
-            e.setupTarget(player, targetList);
-            e.addBehavior(new Separation(enemies, sepDist, sepWeight));
+            e.addBehavior(new Separation(enemies, sepDist, sepWeight)); //evita pursuers colados
         }
 
     }
@@ -113,7 +124,7 @@ public class EnemyManager {
 
         String[] enemyKeys = {"enemy1", "enemy2", "enemy3"};
 
-        //target para os pursuers
+        //cria lista com o player para o sistema de visao (eye)
         List<Body> targetList = new ArrayList<>();
         targetList.add(player);
 
@@ -134,7 +145,7 @@ public class EnemyManager {
             float y = topY + p.random(0, 140);
 
             String pick = enemyKeys[(int) p.random(enemyKeys.length)];
-            PImage sprite = ui.AssetManager.get().img(pick);
+            PImage sprite = AssetManager.get().img(pick);
 
             EnemyLevel3 e = new EnemyLevel3(new PVector(x, y), r, sprite, p);
 
@@ -146,7 +157,7 @@ public class EnemyManager {
             enemies.add(e);
         }
 
-        //flock (não-pursuers) e pursuers (chasers)
+        //separa inimigos em dois grupos para behaviors diferentes
         List<Enemy> flock = new ArrayList<>();
         List<Enemy> chasers = new ArrayList<>();
 
@@ -186,42 +197,42 @@ public class EnemyManager {
         shootTimer -= dt;
         if (shootTimer <= 0f && !enemies.isEmpty()) {
 
-            //escolhe um inimigo random para disparar
+            //escolhe um inimigo aleatorio para disparar
             Enemy shooter = enemies.get((int) p.random(enemies.size()));
 
             //origem do tiro (de baixo do sprite)
             PVector origin = new PVector(shooter.getPos().x, shooter.getPos().y + shooter.getRadius());
-
-            // 30% de prob de ataque custom
-            float prob = p.random(1f);
-
+    
+            float prob = p.random(1f);  //probabilidade de ataque especial
+            
+            //nivel 3: ataque especial (triplo azul)
             if (shooter instanceof EnemyLevel3 && prob < 0.4f) {
-                // ATAQUE ESPECIAL -> TIRO TRIPLO AZUL (nivel 3)
                 int azul = p.color(0, 0, 255);
 
-                // 3 tiros em leque
-                proj.spawnCustomEnenmyShot(origin, new PVector(-100, 300), azul);
-                proj.spawnCustomEnenmyShot(origin, new PVector(0, 300), azul);
-                proj.spawnCustomEnenmyShot(origin, new PVector(100, 300), azul);
-
+                //3 tiros em leque
+                proj.spawnCustomEnemyShot(origin, new PVector(-100, 300), azul);
+                proj.spawnCustomEnemyShot(origin, new PVector(0, 300), azul);
+                proj.spawnCustomEnemyShot(origin, new PVector(100, 300), azul);
+                
+            //nivel 2: ataque especial (duplo roxo)
             } else if (shooter instanceof EnemyLevel2 && prob < 0.3f) {
-                // ATAQUE ESPECIAL -> TIRO DUPLO ROXO (nivel 2)
+                
                 int roxo = p.color(180, 50, 255);
                 float vel = 320f;
 
-                // tiro 1 -> esquerda
+                //tiro 1 -> esquerda
                 PVector vLeft = new PVector(-80, vel);
-                proj.spawnCustomEnenmyShot(origin, vLeft, roxo);
+                proj.spawnCustomEnemyShot(origin, vLeft, roxo);
 
-                // tiro 2 -> direita
+                //tiro 2 -> direita
                 PVector vRight = new PVector(80, vel);
-                proj.spawnCustomEnenmyShot(origin, vRight, roxo);
+                proj.spawnCustomEnemyShot(origin, vRight, roxo);
             } else {
-                // ATAQUE NORMAL
+            	//ataque normal (tiro reto)
                 int encarnado = p.color(255, 0, 0);
                 PVector vDown = new PVector(0, 320f);
 
-                proj.spawnCustomEnenmyShot(origin, vDown, encarnado);
+                proj.spawnCustomEnemyShot(origin, vDown, encarnado);
             }
             shootTimer = shootInterval;
 
@@ -241,12 +252,12 @@ public class EnemyManager {
         return enemies;
     }
 
-    public void spawnBoss(PApplet p) {
-        enemies.clear();
-        PVector pos = new PVector(p.width /2f, p.height * 0.15f); // em cima no meio
-        float radius = 60f;
-        PImage bossSprite = AssetManager.get().img("boss");
-
-        enemies.add(new BossLevel4(pos, radius, bossSprite, p));
-    }
+//    public void spawnBoss(PApplet p) {
+//        enemies.clear();
+//        PVector pos = new PVector(p.width /2f, p.height * 0.15f); // em cima no meio
+//        float radius = 60f;
+//        PImage bossSprite = AssetManager.get().img("boss");
+//
+//        enemies.add(new BossLevel4(pos, radius, bossSprite, p));
+//    }
 }

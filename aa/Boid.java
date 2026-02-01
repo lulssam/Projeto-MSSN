@@ -8,6 +8,23 @@ import processing.core.PVector;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe base para um boid (agente autónomo) com steering behaviors.
+ *
+ * Um code Boid herda de Body, mantendo propriedades físicas (posição, velocidade, massa e raio),
+ * e adiciona uma camada de comportamento autónomo baseada em "behaviors" ponderados.
+ *
+ * A cada atualização, o boid:
+ *  - consulta todos os comportamentos ativos (wander, pursuit, seek, avoid,...)
+ *  - calcula as velocidades desejadas e aplica pesos (weight)
+ *  - combina os resultados numa força média
+ *  - limita a força pelo máximo definido no DNA e aplica-a ao corpo
+ *
+ * O boid usa um modelo de limites do tipo wrap-around no eixo x.
+ *
+ * Esta classe não gere colisões nem regras de gameplay, apenas calcula movimento e desenha o agente.
+ */
+
 public class Boid extends Body {
 
     protected DNA dna;
@@ -37,7 +54,8 @@ public class Boid extends Body {
             behaviors.remove(behavior);
         }
     }
-
+    
+   //combina comportamentos ativos por media ponderada
     public void applyBehaviors(float dt) {
         PVector sumForces = new PVector();
         float sumWeights = 0;
@@ -46,7 +64,8 @@ public class Boid extends Body {
         for (Behavior behavior : behaviors) {
             PVector desired = behavior.getDesiredVelocity(this);
 
-            //aplicar peso do comportamtno
+            //aplicar peso do comportamento
+            //ignora comportamentos que nao produzem velocidade desejada neste frame
             if (desired != null) {
             	 PVector f = desired.copy();
                  f.mult(behavior.getWeight());
@@ -58,8 +77,8 @@ public class Boid extends Body {
 
         //se houver forças -> aplicar
         if (sumWeights > 0) {
-        	sumForces.div(sumWeights);
-            sumForces.limit(dna.maxForce);
+        	sumForces.div(sumWeights);  //normaliza pela soma dos pesos
+            sumForces.limit(dna.maxForce);  //limita forca para evitar acelerações irrealistas
             applyForce(sumForces);
         }
 
@@ -71,9 +90,10 @@ public class Boid extends Body {
 
 
     //definir limites do mundo (modelo wrap around)
+    //wrap-around no eixo x (sai de um lado, entra do outro)
     private void checkBounds() {
-        if (pos.x > p.width + radius) pos.x = -radius;
-        else if (pos.x < -radius) pos.x = p.width + radius;
+        if (pos.x > p.width + radius) { pos.x = -radius;}
+        else if (pos.x < -radius) { pos.x = p.width + radius;}
     }
 
     @Override
@@ -81,7 +101,7 @@ public class Boid extends Body {
         p.pushMatrix();
         p.translate(pos.x, pos.y);
 
-        float angle = vel.heading();
+        float angle = vel.heading(); //orienta o boid pela direcao do movimento
         p.rotate(angle);
 
         p.fill(color);

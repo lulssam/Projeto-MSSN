@@ -5,9 +5,19 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 /**
- * Classe que é a base para corpos genéricos com massa e aparência simples,
- * que podem ser desenhados e têm um tipo associado
+ * Classe base para corpos físicos genéricos no sistema
+ *
+ * Um Body representa uma entidade com massa, raio e posição,
+ * herdando o comportamento físico básico da classe Mover.
+ * Para além disso, possui:
+ *  - um tipo lógico (Type), usado para identificação ou comportamento
+ *  - uma aparência simples definida por uma cor
+ *
+ * Esta classe destina-se a ser estendida por entidades concretas
+ * (ex: asteroides, inimigos, objetos do jogo), não contendo lógica
+ * específica de gameplay.
  */
+
 public class Body extends Mover {
 
     protected Type type;
@@ -18,29 +28,22 @@ public class Body extends Mover {
         this.color = color;
     }
 
-    /**
-     * Obter o tipo do corpo.
-     *
-     * @return type - tipo do corpo
-     */
+    //obter o tipo do corpo
     public Type getType() {
         return type;
     }
 
-    /**
-     * definir o tipo do corpo
-     *
-     * @param type tipo do corpo a definir
-     */
+    //definir o tipo do corpo
     public void setType(Type type) {
         this.type = type;
     }
 
     public void display(PApplet p){
         p.pushStyle();
-
-        p.noStroke(); // sem traço
-        p.fill(0); // preto
+        
+       //representacao visual simples do corpo
+        p.noStroke();  //sem traço
+        p.fill(color);
         p.circle(pos.x, pos.y, 2 * radius);
 
         p.popStyle();

@@ -6,7 +6,21 @@ import processing.core.PVector;
 import java.util.ArrayList;
 import java.util.List;
 
-//Classe ParticleSystem que gere um sistema de partículas que são adicionadas, movidas e destruídas automaticamente
+/**
+ * Classe que gere um sistema de partículas associado a um corpo no mundo.
+ *
+ * Um ParticleSystem herda de Body para poder ter posição/velocidade próprias,
+ * funcionando como "emissor" de partículas. As partículas geradas são instâncias de
+ *  ParticlePhysics, que:
+ *  - são criadas com parâmetros fornecidos por PSControl
+ *  - são atualizadas a cada frame (movimento + timer)
+ *  - são removidas automaticamente quando excedem o seu tempo de vida
+ *
+ * A emissão é baseada num fluxo (partículas/segundo) e utiliza uma componente fracionária
+ * (probabilidade) para manter um fluxo médio estável sem depender do framerate.
+ *
+ * Esta classe é focada em efeitos visuais e não contém lógica de colisões ou gameplay.
+ */
 
 public class ParticleSystem extends Body {
 
@@ -21,10 +35,10 @@ public class ParticleSystem extends Body {
 
     @Override
     public void move(float dt) {
-        super.move(dt); //atualizar estado mover
-        addParticles(dt); //adicionar partículas
+        super.move(dt);   //atualizar estado mover
+        addParticles(dt); //criação baseada no dt do frame
         
-        //atualizar partículas e remover as mortas
+        //atualizar particulas e remover as que expiraram
         for (int i = particlePhysics.size() - 1; i >= 0; i--) {
             ParticlePhysics p = particlePhysics.get(i);
             p.move(dt);
@@ -43,18 +57,18 @@ public class ParticleSystem extends Body {
         }
     }
 
-    //obter controlador do sistema
+    //devolve o controlador do sistema
     public PSControl getPSControl() {
         return psc;
     }
     
-    //criar uma nova partícula com parâmetros aleatórios
+    //cria uma particula nova usando os parametros aleatorios do controlador
     protected void addOneParticle() {
         ParticlePhysics particlePhysics = new ParticlePhysics(pos, psc.getRndVel(), psc.getRndRadius(), psc.getColor(), psc.getRndLifetime());
         this.particlePhysics.add(particlePhysics);
     }
     
-    //passar posição e velocidade
+    //cria uma particula com parametros definidos (spawn manual)
     protected void addOneParticle(PVector spawnPos, PVector spawnVel, float radius, int color, float lifetime) {
         ParticlePhysics particlePhysics = new ParticlePhysics(spawnPos, spawnVel, radius, color, lifetime);
         this.particlePhysics.add(particlePhysics);
@@ -62,7 +76,8 @@ public class ParticleSystem extends Body {
     
     //emitir partículas proporcionalmente ao fluxo
     public void addParticles(float dt) {
-        float particlesPerFrame = psc.getFlow() * dt;
+    	
+        float particlesPerFrame = psc.getFlow() * dt;  //multiplica-se por dt para obter particulas deste frame
         int n = (int) particlesPerFrame;
         float f = particlesPerFrame - n;
         

@@ -1,14 +1,27 @@
 package game;
 
 import java.util.List;
-
 import particles.Projectile;
 import processing.core.PVector;
+
+/**
+ * Sistema de colisões do jogo.
+ *
+ * O CollisionSystem agrupa funções estáticas para detetar e resolver
+ * colisões simples entre entidades, usando aproximação de círculo (circle vs circle).
+ *
+ * Responsabilidades:
+ *  - detetar colisão entre dois círculos (circles)
+ *  - gerir impacto de tiros do jogador em inimigos (aplicar dano, remover inimigos, contar kills)
+ *  - detetar impacto de tiros inimigos no jogador (remover tiro e sinalizar hit)
+ *
+ * Esta classe não desenha nada e não mantém estado interno.
+ */
 
 
 public class CollisionSystem {
 
-    //circulo vs circulo (área de colisão)
+	//detecao de colisão simples: circulo vs circulo
     public static boolean circles(PVector a, float ra, PVector b, float rb) {
         float dx = a.x - b.x;
         float dy = a.y - b.y;
@@ -16,11 +29,12 @@ public class CollisionSystem {
         return (dx * dx + dy * dy) <= (r * r);
     }
 
-    //playerShots vs enemies
+    //tiros do player vs inimigos
     //retorna quantos inimigos morreram (para score)
+    //percorre de tras para a frente para remover com seguranca
     public static int shotsVsEnemies(List<Projectile> shots, List<Enemy> enemies) {
         int kills = 0;
-        int damagePerShot = 1; //1 tiro = 1 dano (Level1 hp=1, Level2 hp=2, Level3 hp=3)
+        int damagePerShot = 1; //dano base por tiro (hp varia por nivel)
 
         for (int si = shots.size() - 1; si >= 0; si--) {
             Projectile s = shots.get(si);
@@ -33,30 +47,30 @@ public class CollisionSystem {
                 if (circles(s.getPos(), s.getRadius(), e.getPos(), e.getRadius())) {
                 	e.takeDamage(damagePerShot); //leva dano
                 	
-                	//se morreu, remove e conta a kill
+                	//se o inimigo morrer, remove e conta para score
                     if (e.isDead()) {
                         enemies.remove(ei);
                         kills++;
                     }
                     
-                    //o tiro desaparece sempre que acerta
-                    hit = true;
+                    hit = true; //tiro desaparece quando acerta
                     break;            
                 }
             }
-
-            if (hit) { shots.remove(si);}
+ 
+            if (hit) { shots.remove(si);} //se acertar no jogador, remove o tiro e devolve true
         }
 
         return kills;
     }
     
-    //enemyShots vs player
+    //tiros inimigos vs player
     public static boolean enemyShotsVsPlayer(List<Projectile> shots, Player player) {
         for (int i = shots.size() - 1; i >= 0; i--) {
         	
         	Projectile s = shots.get(i);
             
+        	//se acertar no jogador, remove o tiro e sinaliza hit
             if (circles(s.getPos(), s.getRadius(), player.getPos(), player.getRadius())) {
                 shots.remove(i);    
                 return true;
@@ -64,6 +78,5 @@ public class CollisionSystem {
         }
         return false;
     }
-
+  
 }
-
